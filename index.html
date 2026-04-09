@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>泌尿组2026年销售看板</title>
 <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
@@ -14,15 +14,13 @@ html, body {
   color: #2c4a6e;
   min-height: 100vh;
   width: 100%;
-  overflow-x: hidden;
 }
 .dashboard {
   margin: 0 auto;
   padding: 18px 12px 40px;
   width: 100%;
-  max-width: 100%;
-  min-width: auto;
-  overflow-x: hidden;
+  max-width: 1920px;
+  min-width: 320px;
 }
 .header {
   text-align: left;
@@ -1815,6 +1813,28 @@ function filterMonthlyQtyProduct(product) {
 }
 
 // ============================================================
+// 检测手机端并切换切片器显示
+// ============================================================
+function checkMobileFilterBar() {
+  const isMobile = window.innerWidth <= 1024;
+  const topFilter = document.getElementById('top-filter-bar');
+  const mobileFilter = document.getElementById('mobile-filter-bar');
+  const dashboard = document.querySelector('.dashboard');
+  
+  if (isMobile) {
+    // 手机端：隐藏顶部，显示底部
+    if (topFilter) topFilter.style.display = 'none';
+    if (mobileFilter) mobileFilter.style.display = 'flex';
+    if (dashboard) dashboard.style.paddingBottom = '80px';
+  } else {
+    // 桌面端：显示顶部，隐藏底部
+    if (topFilter) topFilter.style.display = 'flex';
+    if (mobileFilter) mobileFilter.style.display = 'none';
+    if (dashboard) dashboard.style.paddingBottom = '40px';
+  }
+}
+
+// ============================================================
 // 筛选逻辑 - 联动所有KPI卡片和图表
 // ============================================================
 function filterDept(dept) {
@@ -1865,9 +1885,15 @@ window.onload = () => {
   initMonthlyChart();
   initMonthlyQtyChart();
   
+  // 检测手机端并强制显示底部切片器
+  checkMobileFilterBar();
+  
   // 响应式处理：防抖resize
   let resizeTimer;
   window.addEventListener('resize', () => {
+    // 检测手机端切片器
+    checkMobileFilterBar();
+    
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(() => {
       // 重新渲染所有图表
