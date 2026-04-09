@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>泌尿组2026年销售看板</title>
 <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
@@ -17,8 +17,10 @@ body {
 .dashboard {
   margin: 0 auto;
   padding: 18px 12px 40px;
-  width: fit-content;
-  min-width: min(1440px, 100vw);
+  width: 100%;
+  max-width: 1920px;
+  min-width: auto;
+  overflow-x: hidden;
 }
 .header {
   text-align: left;
@@ -306,12 +308,42 @@ body {
   background: #ffffff;
   border: 1px solid #e8eef8;
   border-radius: 12px;
-  padding: 18px;
+  padding: 16px;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 20px;
+  justify-content: flex-start;
+  gap: 12px;
   box-shadow: 0 2px 12px rgba(21, 101, 192, 0.06);
   transition: all 0.25s ease;
+  text-align: center;
+}
+
+/* 产品名称头部 */
+.ring-product-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+/* 药品类型图标 */
+.drug-icon {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.drug-icon.injection {
+  color: #1565c0;
+}
+
+.drug-icon.tablet {
+  color: #2e7d32;
 }
 .ring-card:hover {
   transform: translateY(-2px);
@@ -370,13 +402,16 @@ body {
 .ring-info {
   flex: 1;
   min-width: 0;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .ring-product-name {
   font-size: 14px;
   font-weight: 600;
   color: #2c4a6e;
-  margin-bottom: 6px;
 }
 
 .ring-amount {
@@ -626,6 +661,17 @@ body {
     padding: 4px 12px;
     font-size: 12px;
   }
+  /* 手机端：隐藏顶部切片器，显示底部固定切片器 */
+  #top-filter-bar {
+    display: none;
+  }
+  .mobile-filter-bar {
+    display: flex;
+  }
+  /* 为底部固定切片器留出空间 */
+  .dashboard {
+    padding: 12px 12px 70px;
+  }
 }
 
 /* 超小屏幕 */
@@ -650,16 +696,216 @@ body {
   .kpi-card .label {
     font-size: 11px;
   }
-  /* 隐藏顶部切片器，显示底部固定切片器 */
-  #top-filter-bar {
-    display: none;
-  }
-  .mobile-filter-bar {
-    display: flex;
-  }
-  /* 为底部固定切片器留出空间 */
+}
+
+/* 小屏手机 (480px以下) */
+@media screen and (max-width: 480px) {
   .dashboard {
-    padding: 12px 12px 70px;
+    padding: 10px 8px 70px;
+  }
+  .header {
+    padding: 14px 10px;
+    border-radius: 8px;
+  }
+  .header h1 {
+    font-size: 15px;
+    letter-spacing: 1px;
+  }
+  .subtitle {
+    font-size: 10px;
+  }
+  .update-time {
+    font-size: 9px;
+  }
+  /* KPI卡片 */
+  .kpi-row {
+    gap: 8px;
+  }
+  .kpi-card {
+    padding: 10px 8px;
+    border-radius: 8px;
+  }
+  .kpi-card .value {
+    font-size: 16px;
+  }
+  .kpi-card .label {
+    font-size: 10px;
+  }
+  .kpi-card .unit {
+    font-size: 9px;
+  }
+  /* 面板 */
+  .panel {
+    padding: 10px;
+    border-radius: 8px;
+  }
+  .panel-title {
+    font-size: 12px;
+    padding-left: 6px;
+    margin-bottom: 8px;
+  }
+  /* 图表 */
+  .chart-container {
+    height: 180px;
+  }
+  /* 表格 */
+  .rank-table {
+    font-size: 10px;
+  }
+  .rank-table th, .rank-table td {
+    padding: 4px 5px;
+  }
+  /* 环形进度条 */
+  .ring-card {
+    padding: 12px;
+    gap: 8px;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  .ring-product-header {
+    margin-bottom: 0;
+  }
+  .ring-info {
+    text-align: center;
+    align-items: center;
+  }
+  .ring-chart-wrapper {
+    width: 80px;
+    height: 80px;
+  }
+  .ring-product-name {
+    font-size: 12px;
+  }
+  .ring-amount {
+    font-size: 16px;
+  }
+  .ring-target, .ring-detail {
+    font-size: 10px;
+  }
+}
+
+/* 超小屏手机 (360px以下) */
+@media screen and (max-width: 360px) {
+  .dashboard {
+    padding: 8px 6px 70px;
+  }
+  .header h1 {
+    font-size: 14px;
+  }
+  .subtitle {
+    font-size: 9px;
+  }
+  .kpi-card .value {
+    font-size: 14px;
+  }
+  .kpi-card .label {
+    font-size: 9px;
+  }
+  .chart-container {
+    height: 160px;
+  }
+  .mobile-filter-btn {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+}
+
+/* 手机横屏优化 (768px以下且横向) */
+@media screen and (max-width: 768px) and (orientation: landscape) {
+  .dashboard {
+    padding: 10px 12px 70px;
+  }
+  .header {
+    padding: 12px;
+  }
+  .header h1 {
+    font-size: 16px;
+  }
+  /* KPI卡片横向排列 */
+  .kpi-row {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+  .kpi-card {
+    padding: 10px 8px;
+  }
+  .kpi-card .value {
+    font-size: 16px;
+  }
+  .kpi-card .label {
+    font-size: 10px;
+  }
+  /* 图表高度调整 */
+  .chart-container {
+    height: 150px;
+  }
+  /* 环形进度条横向排列 */
+  .ring-progress-container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .ring-card {
+    padding: 10px;
+    gap: 6px;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  .ring-product-header {
+    margin-bottom: 0;
+  }
+  .ring-info {
+    text-align: center;
+    align-items: center;
+  }
+  .ring-chart-wrapper {
+    width: 60px;
+    height: 60px;
+  }
+  .ring-product-name {
+    font-size: 11px;
+  }
+  .ring-amount {
+    font-size: 14px;
+  }
+  /* 底部切片器 */
+  .mobile-filter-bar {
+    padding: 6px 10px;
+  }
+  .mobile-filter-btn {
+    padding: 8px 14px;
+    font-size: 12px;
+  }
+}
+
+/* 大屏幕优化 (1920px以上) */
+@media screen and (min-width: 1920px) {
+  .dashboard {
+    padding: 24px 20px 40px;
+  }
+  .header {
+    padding: 20px 16px;
+  }
+  .header h1 {
+    font-size: 26px;
+  }
+  .subtitle {
+    font-size: 14px;
+  }
+  .kpi-card {
+    padding: 18px 22px;
+  }
+  .kpi-card .value {
+    font-size: 30px;
+  }
+  .kpi-card .label {
+    font-size: 13px;
+  }
+  .panel {
+    padding: 18px 20px;
+  }
+  .chart-container {
+    height: 240px;
   }
 }
 
@@ -1159,7 +1405,20 @@ function renderProducts(dept) {
     const progressLength = (displayRate / 100) * circumference;
     const dashArray = `${progressLength} ${circumference}`;
 
+    // 根据产品名称确定图标
+    const isInjection = p.name.includes('炎琥宁');
+    const iconClass = isInjection ? 'injection' : 'tablet';
+    const iconSvg = isInjection 
+      ? '<svg viewBox="0 0 24 24" fill="currentColor" style="width:100%;height:100%;"><path d="M12 2C12.55 2 13 2.45 13 3V5H15C15.55 5 16 5.45 16 6C16 6.55 15.55 7 15 7H13V9H15C16.1 9 17 9.9 17 11V19C17 20.1 16.1 21 15 21H9C7.9 21 7 20.1 7 19V11C7 9.9 7.9 9 9 9H11V7H9C8.45 7 8 6.55 8 6C8 5.45 8.45 5 9 5H11V3C11 2.45 11.45 2 12 2M9 11V19H15V11H9Z"/></svg>'
+      : '<svg viewBox="0 0 24 24" fill="currentColor" style="width:100%;height:100%;"><path d="M6 4H18C19.1 4 20 4.9 20 6V18C20 19.1 19.1 20 18 20H6C4.9 20 4 19.1 4 18V6C4 4.9 4.9 4 6 4M6 6V18H18V6H6M8 8H16V16H8V8Z"/></svg>';
+
     return `<div class="ring-card">
+      <!-- 产品名称头部 -->
+      <div class="ring-product-header">
+        <div class="drug-icon ${iconClass}">${iconSvg}</div>
+        <div class="ring-product-name">${p.name}</div>
+      </div>
+      <!-- 环形进度图 -->
       <div class="ring-chart-wrapper">
         <svg class="ring-svg" viewBox="0 0 110 110">
           <!-- 灰色背景轨道 -->
@@ -1173,8 +1432,8 @@ function renderProducts(dept) {
           <text class="ring-label" x="${cx}" y="${cy + 12}" text-anchor="middle">达成率</text>
         </svg>
       </div>
+      <!-- 产品信息 -->
       <div class="ring-info">
-        <div class="ring-product-name">${p.name}</div>
         <div class="ring-amount">${p.actual.toFixed(1)}<span class="ring-unit">万元</span></div>
         <div class="ring-target">年目标 ${p.target.toLocaleString()}万元</div>
         <div class="ring-detail">差距 ${remaining.toFixed(1)}万元</div>
@@ -1596,6 +1855,37 @@ window.onload = () => {
   renderRegionQtyTable('炎琥宁80mg', '整体');
   initMonthlyChart();
   initMonthlyQtyChart();
+  
+  // 响应式处理：防抖resize
+  let resizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      // 重新渲染所有图表
+      if (window._monthlyChart) window._monthlyChart.resize();
+      if (window._monthlyQtyChart) window._monthlyQtyChart.resize();
+    }, 250);
+  });
+  
+  // 屏幕方向变化时重新渲染 - 重要：确保手机横竖屏切换时正确适配
+  window.addEventListener('orientationchange', () => {
+    setTimeout(() => {
+      // 强制重新计算布局
+      document.body.style.display = 'none';
+      document.body.offsetHeight; // 触发重排
+      document.body.style.display = '';
+      
+      // 重新渲染图表
+      if (window._monthlyChart) {
+        window._monthlyChart.dispose();
+        initMonthlyChart();
+      }
+      if (window._monthlyQtyChart) {
+        window._monthlyQtyChart.dispose();
+        initMonthlyQtyChart();
+      }
+    }, 500);
+  });
 };
 
 // ============================================================
