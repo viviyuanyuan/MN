@@ -1,0 +1,1886 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>泌尿组2026年销售看板</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+  background: #eaf2fb;
+  color: #2c4a6e;
+  min-height: 100vh;
+}
+.dashboard {
+  margin: 0 auto;
+  padding: 18px 12px 40px;
+  width: fit-content;
+  min-width: min(1440px, 100vw);
+}
+.header {
+  text-align: left;
+  margin-bottom: 14px;
+  background: linear-gradient(135deg, #1565c0, #1976d2);
+  border-radius: 10px;
+  padding: 16px 12px;
+  box-shadow: 0 2px 10px rgba(21,101,192,0.3);
+  position: relative;
+  width: 100%;
+  min-width: 100%;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+.header h1 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 2px;
+}
+.subtitle {
+  font-size: 13px;
+  color: rgba(255,255,255,0.85);
+  margin-top: 6px;
+  font-weight: 500;
+}
+.update-time { font-size: 11px; color: rgba(255,255,255,0.6); margin-top: 4px; }
+
+/* 刷新按钮 */
+#refresh-btn {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  padding: 8px 16px;
+  background: rgba(255,255,255,0.2);
+  color: white;
+  border: 1px solid rgba(255,255,255,0.4);
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: inherit;
+  backdrop-filter: blur(4px);
+}
+#refresh-btn:hover {
+  background: rgba(255,255,255,0.35);
+  border-color: rgba(255,255,255,0.6);
+  transform: translateY(-1px);
+}
+#refresh-btn:active {
+  transform: translateY(0);
+}
+
+/* 切片器 */
+.filter-bar {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+.filter-btn {
+  padding: 5px 22px;
+  border: 1.5px solid #90caf9;
+  background: #ffffff;
+  color: #1976d2;
+  border-radius: 20px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.25s;
+  font-family: inherit;
+  box-shadow: 0 1px 4px rgba(21,101,192,0.1);
+}
+.filter-btn:hover { border-color: #1976d2; background: #e3f2fd; color: #1565c0; }
+.filter-btn.active {
+  background: linear-gradient(135deg, #1565c0, #1976d2);
+  border-color: #1976d2;
+  color: #fff;
+  box-shadow: 0 2px 10px rgba(21,101,192,0.35);
+}
+
+/* 产品切片器 */
+.product-filter-btn {
+  padding: 3px 12px;
+  border: 1px solid #90caf9;
+  background: #ffffff;
+  color: #1976d2;
+  border-radius: 12px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+.product-filter-btn:hover { border-color: #1976d2; background: #e3f2fd; }
+.product-filter-btn.active {
+  background: linear-gradient(135deg, #1565c0, #1976d2);
+  border-color: #1976d2;
+  color: #fff;
+}
+
+/* 布局 - 响应式网格 */
+.grid-main {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  width: 100%;
+  min-width: 100%;
+  box-sizing: border-box;
+}
+/* 窗口小于1400px时，主网格变为3列 */
+@media screen and (max-width: 1400px) {
+  .grid-main {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .col-4 {
+    grid-column: span 3;
+  }
+}
+/* 窗口小于1024px时，主网格变为2列 */
+@media screen and (max-width: 1024px) {
+  .grid-main {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .col-4, .col-3, .col-2 {
+    grid-column: span 2;
+  }
+}
+/* 窗口小于768px时，主网格变为1列 */
+@media screen and (max-width: 768px) {
+  .grid-main {
+    grid-template-columns: 1fr;
+  }
+  .col-4, .col-3, .col-2 {
+    grid-column: span 1;
+  }
+}
+.kpi-row {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+/* 窗口小于1200px时，KPI卡片变成2排（每排2个） */
+@media screen and (max-width: 1200px) {
+  .kpi-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+/* 窗口小于600px时，KPI卡片变成1列垂直排列 */
+@media screen and (max-width: 600px) {
+  .kpi-row {
+    grid-template-columns: 1fr;
+  }
+}
+.kpi-card {
+  background: #ffffff;
+  border: 1px solid #bbdefb;
+  border-radius: 10px;
+  padding: 14px 18px;
+  box-shadow: 0 1px 6px rgba(21,101,192,0.08);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.kpi-card:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(21,101,192,0.15); }
+.kpi-card .label { font-size: 12px; color: #78909c; margin-bottom: 6px; }
+.kpi-card .value { font-size: 26px; font-weight: 700; color: #1565c0; }
+.kpi-card .unit { font-size: 11px; color: #b0bec5; margin-top: 3px; }
+.kpi-card.blue .value { color: #1565c0; }
+.kpi-card.green .value { color: #1b5e20; }
+.kpi-card.orange .value { color: #e65100; }
+.kpi-card.red .value { color: #00695c; }
+
+/* 面板 */
+.panel {
+  background: #ffffff;
+  border: 1px solid #bbdefb;
+  border-radius: 10px;
+  padding: 14px 16px;
+  box-shadow: 0 1px 6px rgba(21,101,192,0.08);
+}
+.panel-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1565c0;
+  margin-bottom: 10px;
+  padding-left: 8px;
+  border-left: 3px solid #1976d2;
+}
+.col-2 { grid-column: span 2; }
+.col-3 { grid-column: span 3; }
+.col-4 { grid-column: span 4; }
+
+/* 全宽板块 - 标题以下所有板块宽度一致 */
+.full-width {
+  grid-column: 1 / -1;
+}
+
+/* 月度趋势图表行 - 确保两个图表并排且同宽同高 */
+.chart-row {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.chart-row .chart-panel {
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+.chart-container {
+  width: 100%;
+  height: 200px;
+}
+@media screen and (max-width: 768px) {
+  .chart-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 产品卡片 */
+.product-cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+/* 窗口小于600px时，产品卡片单列显示 */
+@media screen and (max-width: 600px) {
+  .product-cards {
+    grid-template-columns: 1fr;
+  }
+}
+.product-card {
+  background: #f8fbff;
+  border: 1px solid #e3f2fd;
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+.product-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.product-name { font-size: 13px; font-weight: 600; color: #1565c0; }
+.product-dept { font-size: 11px; }
+.product-body { margin-bottom: 8px; }
+.product-amount { font-size: 20px; font-weight: 700; color: #1565c0; }
+.product-unit { font-size: 11px; font-weight: normal; margin-left: 4px; }
+.product-target { font-size: 11px; color: #90a4ae; margin-top: 2px; }
+.product-yoy { font-size: 11px; color: #78909c; margin-top: 2px; }
+.product-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.progress-bar {
+  flex: 1;
+  height: 6px;
+  background: #e3f2fd;
+  border-radius: 3px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 1.2s ease;
+}
+.product-rate { font-size: 12px; font-weight: 600; }
+
+/* ============================================================
+   简洁环形进度条
+   ============================================================ */
+
+/* 容器布局 */
+.ring-progress-container {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+@media screen and (max-width: 700px) { 
+  .ring-progress-container { grid-template-columns: 1fr; } 
+}
+
+/* 卡片设计 */
+.ring-card {
+  background: #ffffff;
+  border: 1px solid #e8eef8;
+  border-radius: 12px;
+  padding: 18px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  box-shadow: 0 2px 12px rgba(21, 101, 192, 0.06);
+  transition: all 0.25s ease;
+}
+.ring-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(21, 101, 192, 0.12);
+}
+
+/* 环形图表容器 */
+.ring-chart-wrapper {
+  position: relative;
+  width: 110px;
+  height: 110px;
+  flex-shrink: 0;
+}
+
+/* SVG基础 */
+.ring-svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* 环形背景轨道 - 灰色 */
+.ring-track {
+  fill: none;
+  stroke: #e0e6ed;
+  stroke-width: 10;
+}
+
+/* 进度环形 - 蓝色 */
+.ring-progress {
+  fill: none;
+  stroke: #1565c0;
+  stroke-width: 10;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 中心区域 */
+.ring-center {
+  fill: #ffffff;
+}
+
+/* 百分比数字 */
+.ring-percent {
+  font-size: 22px;
+  font-weight: 700;
+  fill: #1565c0;
+}
+
+/* 达成率标签 */
+.ring-label {
+  font-size: 10px;
+  fill: #90a4ae;
+}
+
+/* 产品信息区域 */
+.ring-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.ring-product-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #2c4a6e;
+  margin-bottom: 6px;
+}
+
+.ring-amount {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1565c0;
+  line-height: 1.2;
+}
+
+.ring-unit {
+  font-size: 11px;
+  font-weight: normal;
+  color: #90a4ae;
+  margin-left: 4px;
+}
+
+.ring-target {
+  font-size: 11px;
+  color: #78909c;
+  margin-top: 4px;
+}
+
+.ring-detail {
+  font-size: 11px;
+  color: #f44336;
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+/* 地区排名表格 */
+.rank-table {
+  width: 100%;
+  min-width: 700px;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.rank-table th {
+  text-align: center;
+  padding: 7px 8px;
+  font-size: 11px;
+  color: #ffffff;
+  background: linear-gradient(135deg, #1565c0, #1976d2);
+  border-bottom: none;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.rank-table th:first-child { border-radius: 6px 0 0 0; }
+.rank-table th:last-child { border-radius: 0 6px 0 0; }
+.rank-table td {
+  text-align: center;
+  padding: 5px 8px;
+  border-bottom: 1px solid #e3f2fd;
+  color: #2c4a6e;
+  white-space: nowrap;
+}
+.rank-table tr:nth-child(even) td { background: #f3f8ff; }
+.rank-table tr:hover td { background: #e3f2fd; }
+
+/* 表头锁定 */
+.table-scroll-container {
+  max-height: 290px;
+  overflow: auto;
+  position: relative;
+}
+.rank-table-sticky thead {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.rank-table-sticky th:first-child { border-radius: 6px 0 0 0; }
+.rank-table-sticky th:last-child { border-radius: 0 6px 0 0; }
+
+/* 地区列锁定 - 用于地区发货数量排名表格（排名、大区、地区三列锁定） */
+/* 第1列：排名 */
+.rank-table-sticky-col th:nth-child(1),
+.rank-table-sticky-col td:nth-child(1) {
+  position: sticky;
+  left: 0;
+  background: #fff;
+  z-index: 6;
+  box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+}
+.rank-table-sticky-col th:nth-child(1) {
+  z-index: 16;
+  background: linear-gradient(135deg, #1565c0, #1976d2);
+  color: #fff;
+}
+.rank-table-sticky-col tr:nth-child(even) td:nth-child(1) {
+  background: #f3f8ff;
+}
+.rank-table-sticky-col tr:hover td:nth-child(1) {
+  background: #e3f2fd;
+}
+
+/* 第2列：大区 */
+.rank-table-sticky-col th:nth-child(2),
+.rank-table-sticky-col td:nth-child(2) {
+  position: sticky;
+  left: 45px;
+  background: #fff;
+  z-index: 5;
+  box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+}
+.rank-table-sticky-col th:nth-child(2) {
+  z-index: 15;
+  background: linear-gradient(135deg, #1565c0, #1976d2);
+  color: #fff;
+}
+.rank-table-sticky-col tr:nth-child(even) td:nth-child(2) {
+  background: #f3f8ff;
+}
+.rank-table-sticky-col tr:hover td:nth-child(2) {
+  background: #e3f2fd;
+}
+
+/* 第3列：地区 */
+.rank-table-sticky-col th:nth-child(3),
+.rank-table-sticky-col td:nth-child(3) {
+  position: sticky;
+  left: 90px;
+  background: #fff;
+  z-index: 4;
+  box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+}
+.rank-table-sticky-col th:nth-child(3) {
+  z-index: 14;
+  background: linear-gradient(135deg, #1565c0, #1976d2);
+  color: #fff;
+}
+.rank-table-sticky-col tr:nth-child(even) td:nth-child(3) {
+  background: #f3f8ff;
+}
+.rank-table-sticky-col tr:hover td:nth-child(3) {
+  background: #e3f2fd;
+}
+.rank-badge {
+  display: inline-block;
+  width: 20px; height: 20px;
+  line-height: 20px;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+}
+.rank-1 { background: #f57c00; }
+.rank-2 { background: #fb8c00; }
+.rank-3 { background: #ffa726; }
+.rate-good { color: #1565c0; font-weight: 600; }
+.rate-warn { color: #e65100; font-weight: 600; }
+.rate-bad  { color: #c62828; font-weight: 600; }
+
+/* ========== 响应式适配 ========== */
+@media screen and (max-width: 768px) {
+  .dashboard {
+    padding: 12px 12px 20px;
+  }
+  .header {
+    padding: 16px 12px;
+  }
+  #refresh-btn {
+    right: 12px;
+  }
+  #refresh-btn {
+    right: 12px;
+  }
+  .header h1 {
+    font-size: 18px;
+    letter-spacing: 1px;
+  }
+  .subtitle {
+    font-size: 11px;
+  }
+  .update-time {
+    font-size: 10px;
+  }
+  /* 切片器换行 */
+  .filter-bar {
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+    justify-content: flex-start;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+  .filter-btn {
+    padding: 6px 16px;
+    font-size: 13px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  /* 网格布局调整 */
+  .grid-main {
+    grid-template-columns: 1fr;
+  }
+  .col-2, .col-3, .col-4 {
+    grid-column: span 1;
+  }
+  /* KPI卡片 */
+  .kpi-card {
+    padding: 12px 8px;
+  }
+  .kpi-card .value {
+    font-size: 20px;
+  }
+  .kpi-card .label {
+    font-size: 11px;
+  }
+  .kpi-card .unit {
+    font-size: 10px;
+  }
+  /* 面板 */
+  .panel {
+    padding: 12px;
+  }
+  .panel-title {
+    font-size: 13px;
+    margin-bottom: 10px;
+  }
+  /* 产品卡片 */
+  .product-cards {
+    grid-template-columns: 1fr;
+  }
+  .product-card {
+    min-width: auto;
+    padding: 12px;
+  }
+  /* 表格横向滚动 */
+  .table-scroll-container {
+    max-height: 240px;
+    overflow-x: auto;
+    overflow-y: auto;
+    width: 100%;
+  }
+  .rank-table {
+    min-width: 100%;
+    font-size: 11px;
+  }
+  .rank-table th, .rank-table td {
+    padding: 5px 6px;
+  }
+  /* 产品筛选按钮 */
+  .product-filter-bar {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .product-filter-btn {
+    padding: 4px 12px;
+    font-size: 12px;
+  }
+}
+
+/* 超小屏幕 */
+@media screen and (max-width: 600px) {
+  .header h1 {
+    font-size: 16px;
+  }
+  .header {
+    padding: 16px 12px;
+  }
+  /* KPI卡片2×2排列 */
+  .kpi-row {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  .kpi-card {
+    padding: 12px 10px;
+  }
+  .kpi-card .value {
+    font-size: 18px;
+  }
+  .kpi-card .label {
+    font-size: 11px;
+  }
+  /* 隐藏顶部切片器，显示底部固定切片器 */
+  #top-filter-bar {
+    display: none;
+  }
+  .mobile-filter-bar {
+    display: flex;
+  }
+  /* 为底部固定切片器留出空间 */
+  .dashboard {
+    padding: 12px 12px 70px;
+  }
+}
+
+/* 手机端底部固定切片器 - 默认隐藏 */
+.mobile-filter-bar {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border-top: 1px solid #bbdefb;
+  padding: 8px 12px;
+  gap: 8px;
+  z-index: 1000;
+  box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+  overflow-x: auto;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+}
+.mobile-filter-btn {
+  flex: 0 0 auto;
+  padding: 10px 16px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  background: #f5f5f5;
+  color: #666;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.mobile-filter-btn.active {
+  background: linear-gradient(135deg, #1565c0, #1976d2);
+  color: #fff;
+  border-color: #1565c0;
+}
+
+</style>
+</head>
+<body>
+<div class="dashboard">
+  <div class="header">
+    <h1>药友制药 2026年泌尿组发货进度看板</h1>
+    <div class="subtitle">产品：炎琥宁80mg · 萘哌地尔 | 统计截至：2026年4月8日</div>
+    <button id="refresh-btn" title="点击选择Excel文件更新看板数据">🔄 刷新</button>
+  </div>
+
+  <div class="filter-bar" id="top-filter-bar">
+    <button class="filter-btn active" onclick="filterDept('整体')">整体</button>
+    <button class="filter-btn" onclick="filterDept('医院销售部')">医院销售部</button>
+    <button class="filter-btn" onclick="filterDept('新营销部')">新营销部</button>
+  </div>
+
+  <div class="grid-main">
+
+    <!-- KPI 卡片行 -->
+    <div class="kpi-row">
+      <div class="kpi-card blue">
+        <div class="label">年度销售目标</div>
+        <div class="value" id="kpi-target">12,020</div>
+        <div class="unit">万元</div>
+      </div>
+      <div class="kpi-card blue">
+        <div class="label">累计发货金额</div>
+        <div class="value" id="kpi-actual">763.7</div>
+        <div class="unit">万元</div>
+      </div>
+      <div class="kpi-card orange">
+        <div class="label">金额累计达成率</div>
+        <div class="value" id="kpi-rate">6.4<span style="font-size:16px;color:#e65100">%</span></div>
+        <div class="unit" id="kpi-progress">月累计目标进度 33.3%</div>
+      </div>
+      <div class="kpi-card red">
+        <div class="label">同比增幅</div>
+        <div class="value" id="kpi-yoy">-49.4<span style="font-size:16px">%</span></div>
+        <div class="unit" id="kpi-yoy-unit">2025同期发货 1,508.7万元</div>
+      </div>
+    </div>
+
+    <!-- 产品完成情况 -->
+    <div class="panel full-width" id="product-completion">
+      <div class="panel-title" style="margin-bottom:10px;">产品发货完成情况</div>
+      <div class="ring-progress-container" id="ring-progress"></div>
+    </div>
+
+    <!-- 月度发货趋势图表组 -->
+    <div class="chart-row">
+      <!-- 月度发货趋势（金额）-->
+      <div class="panel chart-panel">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <div class="panel-title" style="margin-bottom:0;">月度发货趋势（金额）<span style="font-size:11px;color:#78909c;font-weight:400;margin-left:8px;">单位：万元</span></div>
+          <div class="product-filter-bar" style="display:flex;gap:6px;">
+            <button class="product-filter-btn active" data-product="all" onclick="filterMonthlyProduct('all')">全部</button>
+            <button class="product-filter-btn" data-product="炎琥宁80mg" onclick="filterMonthlyProduct('炎琥宁80mg')">炎琥宁</button>
+            <button class="product-filter-btn" data-product="萘哌地尔" onclick="filterMonthlyProduct('萘哌地尔')">萘哌地尔</button>
+          </div>
+        </div>
+        <div id="chart-monthly" class="chart-container"></div>
+      </div>
+
+      <!-- 月度发货趋势（数量）-->
+      <div class="panel chart-panel">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <div class="panel-title" style="margin-bottom:0;">月度发货趋势（数量）<span style="font-size:11px;color:#78909c;font-weight:400;margin-left:8px;">单位：万支、万盒</span></div>
+          <div class="product-filter-bar" style="display:flex;gap:6px;">
+            <button class="product-filter-btn active" data-qty-product="炎琥宁80mg" onclick="filterMonthlyQtyProduct('炎琥宁80mg')">炎琥宁</button>
+            <button class="product-filter-btn" data-qty-product="萘哌地尔" onclick="filterMonthlyQtyProduct('萘哌地尔')">萘哌地尔</button>
+          </div>
+        </div>
+        <div id="chart-monthly-qty" class="chart-container"></div>
+      </div>
+    </div>
+
+    <!-- 地区发货金额排名 -->
+    <div class="panel full-width">
+      <div class="panel-title">地区发货金额排名<span style="font-size:11px;color:#78909c;font-weight:400;margin-left:8px;">单位：万元</span></div>
+      <div class="table-scroll-container">
+        <table class="rank-table rank-table-sticky rank-table-sticky-col">
+          <thead>
+            <tr>
+              <th>排名</th>
+              <th>大区</th>
+              <th>地区</th>
+              <th>目标</th>
+              <th>发货</th>
+              <th>达成率</th>
+              <th>目标金额差距</th>
+            </tr>
+          </thead>
+          <tbody id="region-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 地区发货数量排名 -->
+    <div class="panel full-width">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <div class="panel-title" style="margin-bottom:0;">地区发货数量排名<span style="font-size:11px;color:#78909c;font-weight:400;margin-left:8px;">单位：万支、万盒</span></div>
+        <div class="product-filter-bar" style="display:flex;gap:6px;">
+          <button class="product-filter-btn active" data-product="炎琥宁80mg" onclick="filterProduct('炎琥宁80mg')">炎琥宁</button>
+          <button class="product-filter-btn" data-product="萘哌地尔" onclick="filterProduct('萘哌地尔')">萘哌地尔</button>
+        </div>
+      </div>
+      <div class="table-scroll-container">
+        <table class="rank-table rank-table-sticky rank-table-sticky-col">
+          <thead>
+            <tr>
+              <th>排名</th>
+              <th>大区</th>
+              <th>地区</th>
+              <th>年目标量</th>
+              <th>26年发货量</th>
+              <th>达成率</th>
+              <th>25年发货量</th>
+              <th>25年同期发货量</th>
+              <th>同比增幅</th>
+            </tr>
+          </thead>
+          <tbody id="region-qty-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ============================================================
+// 数据
+// ============================================================
+const DATA = {
+  overview: {
+    total_target_wan: 12020.0,
+    total_actual_wan: 766.28,
+    completion_rate: 6.4,
+    yoy_pct: -49.2,
+    total_2025_same_wan: 1508.71,
+    time_progress: 26.1
+  },
+  // 各部门2025同期
+  dept2025Same: {
+    '医院销售部': 1508.71,
+    '新营销部': 0
+  },
+  monthly: {
+    '2026': { '1': 469.44, '2': 35.51, '3': 238.15, '4': 20.55 },
+    '2025': { '1': 1153.34, '2': 265.46, '3': 89.91, '4': 256.47, '5': 200.98, '6': 188.28,
+              '7': 295.24, '8': 201.35, '9': 309.48, '10': 259.17, '11': 625.62, '12': 767.62 }
+  },
+  // 按月按部门
+  monthlyDept: {
+    '医院销售部': { '2026': { '1': 467.71, '2': 26.60, '3': 208.94, '4': 20.55 },
+                    '2025': { '1': 1153.34, '2': 265.46, '3': 89.91, '4': 256.47, '5': 200.98, '6': 188.28,
+                              '7': 295.24, '8': 201.35, '9': 309.48, '10': 259.17, '11': 625.62, '12': 767.62 } },
+    '新营销部':   { '2026': { '1': 1.73, '2': 8.91, '3': 29.21, '4': 0 },
+                    '2025': { '1': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0,
+                              '7': 0, '8': 0, '9': 0, '10': 0, '11': 0, '12': 0 } }
+  },
+  products: {
+    '炎琥宁80mg-医院销售部': { target_wan: 4420.0, actual_wan: 578.86, rate: 13.1, yoy: -61.6, dept: '医院销售部', parent: '炎琥宁80mg' },
+    '炎琥宁80mg-新营销部':   { target_wan: 0, actual_wan: 0.30, rate: 0, yoy: 0, dept: '新营销部', parent: '炎琥宁80mg' },
+    '萘哌地尔-医院销售部': { target_wan: 3750.0, actual_wan: 147.57, rate: 3.9, yoy: 0, dept: '医院销售部', parent: '萘哌地尔' },
+    '萘哌地尔-新营销部':   { target_wan: 3850.0, actual_wan: 39.55, rate: 1.0, yoy: 0, dept: '新营销部', parent: '萘哌地尔' }
+  },
+  monthlyProduct: {
+    '炎琥宁80mg-医院销售部': { '2026': { '1': 415.79, '2': 21.13, '3': 125.93, '4': 16.01 },
+                              '2025': { '1': 1153.34, '2': 265.46, '3': 89.91, '4': 67.97, '5': 157.69, '6': 292.40,
+                                        '7': 199.56, '8': 115.81, '9': 254.68, '10': 159.53, '11': 450.93, '12': 579.00 } },
+    '炎琥宁80mg-新营销部':   { '2026': { '1': 0, '2': 0, '3': 0.30, '4': 0 },
+                              '2025': { '1': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0,
+                                        '7': 0, '8': 0, '9': 0, '10': 0, '11': 0, '12': 0 } },
+    '萘哌地尔-医院销售部': { '2026': { '1': 51.92, '2': 5.47, '3': 83.01, '4': 7.17 },
+                           '2025': { '1': 0, '2': 0, '3': 0, '4': 7.94, '5': 10.04, '6': 6.63,
+                                     '7': 12.91, '8': 18.01, '9': 14.23, '10': 31.92, '11': 40.52, '12': 78.20 } },
+    '萘哌地尔-新营销部':   { '2026': { '1': 1.73, '2': 8.91, '3': 28.91, '4': 0 },
+                           '2025': { '1': 0, '2': 0, '3': 0, '4': 0.17, '5': 4.33, '6': 0,
+                                     '7': 0, '8': 0, '9': 0, '10': 21.86, '11': 3.59, '12': 3.46 } }
+  },
+  // 月度发货数量数据（按产品）- 单位：万支（炎琥宁）、万盒（萘哌地尔）- 使用统计物料数量
+  monthlyQty: {
+    '炎琥宁80mg-医院销售部': { '2026': { '1': 141.95, '2': 6.63, '3': 50.65, '4': 4.40 },
+                              '2025': { '1': 146.68, '2': 32.52, '3': 15.03, '4': 11.68, '5': 188.77, '6': 100.10,
+                                        '7': 67.43, '8': 49.47, '9': 803.85, '10': 53.04, '11': 155.59, '12': 201.63 } },
+    '炎琥宁80mg-新营销部':   { '2026': { '1': 0, '2': 0, '3': 0.10, '4': 0 },
+                              '2025': { '1': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0,
+                                        '7': 0, '8': 0, '9': 0, '10': 0, '11': 0, '12': 0 } },
+    '萘哌地尔-医院销售部': { '2026': { '1': 0.69, '2': 0.07, '3': 1.11, '4': 0.10 },
+                           '2025': { '1': 0, '2': 0, '3': 0, '4': 0.11, '5': 0.13, '6': 0.09,
+                                     '7': 0.17, '8': 0.24, '9': 0.19, '10': 0.44, '11': 0.54, '12': 1.04 } },
+    '萘哌地尔-新营销部':   { '2026': { '1': 0.02, '2': 0.11, '3': 0.36, '4': 0 },
+                           '2025': { '1': 0, '2': 0, '3': 0, '4': 0.01, '5': 0.06, '6': 0,
+                                     '7': 0, '8': 0, '9': 0, '10': 0.29, '11': 0.17, '12': 0.04 } }
+  },
+  // 月度任务量目标（按部门、产品切片）- 单位：万支/万盒，用于计算月平均任务量参考线
+  // 年目标/12 = 月平均任务量
+  monthlyQtyTarget: {
+    // 炎琥宁年目标1700万支，萘哌地尔年目标100万盒
+    // 按部门拆分：医院销售部炎琥宁1700万支，新营销部炎琥宁约50万支；医院销售部萘哌地尔约50万盒，新营销部萘哌地尔约50万盒
+    '炎琥宁80mg-医院销售部': { annual: 1700, monthlyAvg: 141.67 },  // 1700/12
+    '炎琥宁80mg-新营销部':   { annual: 0, monthlyAvg: 0 },          // 新营销部炎琥宁任务为0
+    '萘哌地尔-医院销售部': { annual: 50, monthlyAvg: 4.17 },        // 50/12
+    '萘哌地尔-新营销部':   { annual: 50, monthlyAvg: 4.17 }         // 50/12
+  },
+  areasDetail: [
+    { area: '华东', dept: '医院销售部', target_wan: 2472.00, actual_wan: 111.69, rate: 4.5 },
+    { area: '华北', dept: '医院销售部', target_wan: 1648.25, actual_wan: 92.71, rate: 5.6 },
+    { area: '华南', dept: '医院销售部', target_wan: 1142.25, actual_wan: 84.21, rate: 7.4 },
+    { area: '华西', dept: '医院销售部', target_wan: 2907.50, actual_wan: 435.19, rate: 15.0 },
+    { area: '新营销', dept: '新营销部', target_wan: 3850.00, actual_wan: 39.85, rate: 1.0 }
+  ],
+  // 地区发货金额数据（来自泌尿组产品数据明细-发货表，按发货日期+无税金额统计）
+  regions: [
+    { region: '云南',   area: '华西', dept: '医院销售部', target_wan: 565.0,   actual_wan: 184.93, amount2025: 800.84 },
+    { region: '重庆',   area: '华西', dept: '医院销售部', target_wan: 669.0,   actual_wan: 121.94, amount2025: 1207.65 },
+    { region: '贵州',   area: '华西', dept: '医院销售部', target_wan: 554.0,   actual_wan: 54.05, amount2025: 497.07 },
+    { region: '湖南',   area: '华南', dept: '医院销售部', target_wan: 329.0,   actual_wan: 46.53, amount2025: 107.62 },
+    { region: '上海',   area: '华东', dept: '医院销售部', target_wan: 538.0,   actual_wan: 46.19, amount2025: 50.42 },
+    { region: '黑龙江', area: '华北', dept: '医院销售部', target_wan: 190.0,   actual_wan: 33.98, amount2025: 69.13 },
+    { region: '江苏',   area: '华东', dept: '医院销售部', target_wan: 970.0,   actual_wan: 33.63, amount2025: 183.61 },
+    { region: '四川',   area: '华西', dept: '医院销售部', target_wan: 246.0,   actual_wan: 29.37, amount2025: 121.74 },
+    { region: 'C端-京东', area: '新营销', dept: '新营销部', target_wan: 585.0, actual_wan: 2.16, amount2025: 11.68 },
+    { region: 'C端-其他', area: '新营销', dept: '新营销部', target_wan: 78.0,  actual_wan: 2.60, amount2025: 2.47 },
+    { region: '广东',   area: '华南', dept: '医院销售部', target_wan: 459.0,   actual_wan: 23.34, amount2025: 75.49 },
+    { region: '湖北',   area: '华西', dept: '医院销售部', target_wan: 350.0,   actual_wan: 22.73, amount2025: 96.11 },
+    { region: '浙江',   area: '华东', dept: '医院销售部', target_wan: 710.0,   actual_wan: 21.26, amount2025: 342.08 },
+    { region: '辽宁',   area: '华北', dept: '医院销售部', target_wan: 254.0,   actual_wan: 15.92, amount2025: 68.80 },
+    { region: '陕西',   area: '华西', dept: '医院销售部', target_wan: 149.0,   actual_wan: 13.23, amount2025: 59.85 },
+    { region: '河北',   area: '华北', dept: '医院销售部', target_wan: 118.0,   actual_wan: 12.86, amount2025: 9.68 },
+    { region: '山东',   area: '华北', dept: '医院销售部', target_wan: 396.0,   actual_wan: 7.31, amount2025: 25.32 },
+    { region: '山西',   area: '华北', dept: '医院销售部', target_wan: 98.75,   actual_wan: 8.98, amount2025: 27.27 },
+    { region: '安徽',   area: '华东', dept: '医院销售部', target_wan: 254.0,   actual_wan: 10.62, amount2025: 38.23 },
+    { region: '北京',   area: '华北', dept: '医院销售部', target_wan: 306.0,   actual_wan: 6.20, amount2025: 4.19 },
+    { region: '河南',   area: '华西', dept: '医院销售部', target_wan: 123.0,   actual_wan: 3.27, amount2025: 24.05 },
+    { region: '宁夏',   area: '华西', dept: '医院销售部', target_wan: 26.0,    actual_wan: 1.91, amount2025: 7.99 },
+    { region: '广西',   area: '华南', dept: '医院销售部', target_wan: 160.5,   actual_wan: 10.10, amount2025: 35.58 },
+    { region: '江西',   area: '华南', dept: '医院销售部', target_wan: 130.25,  actual_wan: 4.25, amount2025: 65.53 },
+    { region: '吉林',   area: '华北', dept: '医院销售部', target_wan: 104.25,  actual_wan: 4.58, amount2025: 30.03 },
+    { region: '内蒙古', area: '华北', dept: '医院销售部', target_wan: 78.25,   actual_wan: 2.51, amount2025: 19.88 },
+    { region: 'B端-药师帮', area: '新营销', dept: '新营销部', target_wan: 0,   actual_wan: 35.09, amount2025: 0.00 },
+    { region: '甘肃',   area: '华西', dept: '医院销售部', target_wan: 160.5,   actual_wan: 3.77, amount2025: 18.19 },
+    { region: '天津',   area: '华北', dept: '医院销售部', target_wan: 103.0,   actual_wan: 0.37, amount2025: 0.44 },
+    { region: 'KA',     area: '新营销', dept: '新营销部', target_wan: 2875.0,  actual_wan: 0.00, amount2025: 19.27 },
+    { region: '新疆',   area: '华西', dept: '医院销售部', target_wan: 39.25,   actual_wan: 0.00, amount2025: 8.81 },
+    { region: '西藏',   area: '华西', dept: '医院销售部', target_wan: 13.0,    actual_wan: 0.00, amount2025: 0.26 },
+    { region: '福建',   area: '华南', dept: '医院销售部', target_wan: 50.5,    actual_wan: 0.00, amount2025: 0.03 },
+    { region: '青海',   area: '华西', dept: '医院销售部', target_wan: 13.0,    actual_wan: 0.00, amount2025: 10.76 },
+    { region: '海南',   area: '华南', dept: '医院销售部', target_wan: 13.0,    actual_wan: 0.00, amount2025: 0.00 },
+    { region: 'C端-阿里', area: '新营销', dept: '新营销部', target_wan: 312.0,  actual_wan: 0.00, amount2025: 0.00 }
+  ],
+  // 地区发货数量数据（按产品）- 单位：万支（炎琥宁）、万盒（萘哌地尔）
+  // 数据来源：泌尿组产品数据明细-发货表，按发货日期+统计物料数量（折合量）统计
+  // 目标量来源：泌尿组产品任务2026.xlsx（炎琥宁合计1700万支，萘哌地尔合计100万盒）
+  regionQty: {
+    '炎琥宁80mg': [
+      { region: '云南', area: '华西', dept: '医院销售部', target: 200.0, qty2026: 55.60, qty2025Full: 223.45, qty2025Same: 10.25, yoy: 442.4 },
+      { region: '重庆', area: '华西', dept: '医院销售部', target: 240.0, qty2026: 35.73, qty2025Full: 1110.17, qty2025Same: 75.96, yoy: -53.0 },
+      { region: '贵州', area: '华西', dept: '医院销售部', target: 200.0, qty2026: 23.00, qty2025Full: 179.50, qty2025Same: 55.20, yoy: -58.3 },
+      { region: '江苏', area: '华东', dept: '医院销售部', target: 200.0, qty2026: 11.10, qty2025Full: 78.10, qty2025Same: 3.40, yoy: 226.5 },
+      { region: '四川', area: '华西', dept: '医院销售部', target: 60.0, qty2026: 10.60, qty2025Full: 38.25, qty2025Same: 3.60, yoy: 194.4 },
+      { region: '广东', area: '华南', dept: '医院销售部', target: 90.0, qty2026: 9.40, qty2025Full: 29.08, qty2025Same: 7.15, yoy: 31.5 },
+      { region: '浙江', area: '华东', dept: '医院销售部', target: 100.0, qty2026: 9.00, qty2025Full: 57.50, qty2025Same: 23.20, yoy: -61.2 },
+      { region: '湖北', area: '华西', dept: '医院销售部', target: 100.0, qty2026: 9.00, qty2025Full: 35.00, qty2025Same: 15.00, yoy: -40.0 },
+      { region: '黑龙江', area: '华北', dept: '医院销售部', target: 50.0, qty2026: 8.50, qty2025Full: 13.55, qty2025Same: 5.05, yoy: 68.3 },
+      { region: '陕西', area: '华西', dept: '医院销售部', target: 40.0, qty2026: 5.70, qty2025Full: 18.95, qty2025Same: 4.85, yoy: 17.5 },
+      { region: '安徽', area: '华东', dept: '医院销售部', target: 40.0, qty2026: 5.00, qty2025Full: 18.00, qty2025Same: 0.00, yoy: 100.0 },
+      { region: '湖南', area: '华南', dept: '医院销售部', target: 40.0, qty2026: 4.60, qty2025Full: 11.70, qty2025Same: 0.00, yoy: 100.0 },
+      { region: '山西', area: '华北', dept: '医院销售部', target: 25.0, qty2026: 3.50, qty2025Full: 7.20, qty2025Same: 1.20, yoy: 191.7 },
+      { region: '广西', area: '华南', dept: '医院销售部', target: 30.0, qty2026: 2.70, qty2025Full: 6.55, qty2025Same: 1.55, yoy: 74.2 },
+      { region: '辽宁', area: '华北', dept: '医院销售部', target: 40.0, qty2026: 2.60, qty2025Full: 9.65, qty2025Same: 2.60, yoy: 0.0 },
+      { region: '江西', area: '华南', dept: '医院销售部', target: 40.0, qty2026: 2.00, qty2025Full: 27.69, qty2025Same: 3.35, yoy: -40.3 },
+      { region: '山东', area: '华北', dept: '医院销售部', target: 40.0, qty2026: 1.00, qty2025Full: 4.30, qty2025Same: 0.20, yoy: 400.0 },
+      { region: '甘肃', area: '华西', dept: '医院销售部', target: 30.0, qty2026: 1.00, qty2025Full: 8.14, qty2025Same: 0.60, yoy: 66.7 },
+      { region: '宁夏', area: '华西', dept: '医院销售部', target: 10.0, qty2026: 0.90, qty2025Full: 2.60, qty2025Same: 0.40, yoy: 125.0 },
+      { region: '河南', area: '华西', dept: '医院销售部', target: 30.0, qty2026: 0.90, qty2025Full: 7.90, qty2025Same: 2.50, yoy: -64.0 },
+      { region: '内蒙古', area: '华北', dept: '医院销售部', target: 20.0, qty2026: 0.70, qty2025Full: 3.30, qty2025Same: 1.50, yoy: -53.3 },
+      { region: '吉林', area: '华北', dept: '医院销售部', target: 30.0, qty2026: 0.50, qty2025Full: 6.75, qty2025Same: 1.90, yoy: -73.7 },
+      { region: '河北', area: '华北', dept: '医院销售部', target: 5.0, qty2026: 0.30, qty2025Full: 1.75, qty2025Same: 0.70, yoy: -57.1 },
+      { region: '天津', area: '华北', dept: '医院销售部', target: 5.0, qty2026: 0.10, qty2025Full: 0.10, qty2025Same: 0, yoy: 100.0 },
+      { region: '福建', area: '华南', dept: '医院销售部', target: 5.0, qty2026: 0, qty2025Full: 0.01, qty2025Same: 0, yoy: 0 },
+      { region: '青海', area: '华西', dept: '医院销售部', target: 5.0, qty2026: 0, qty2025Full: 3.35, qty2025Same: 0.55, yoy: -100.0 },
+      { region: '新疆', area: '华西', dept: '医院销售部', target: 5.0, qty2026: 0, qty2025Full: 4.10, qty2025Same: 0, yoy: 0 },
+      { region: '西藏', area: '华西', dept: '医院销售部', target: 5.0, qty2026: 0, qty2025Full: 0.10, qty2025Same: 0, yoy: 0 },
+      { region: '海南', area: '华南', dept: '医院销售部', target: 5.0, qty2026: 0, qty2025Full: 0, qty2025Same: 0, yoy: 0 },
+      { region: '上海', area: '华东', dept: '医院销售部', target: 5.0, qty2026: 0, qty2025Full: 0, qty2025Same: 0, yoy: 0 },
+      { region: '北京', area: '华北', dept: '医院销售部', target: 5.0, qty2026: 0, qty2025Full: 0, qty2025Same: 0, yoy: 0 }
+    ],
+    '萘哌地尔': [
+      { region: 'KA', area: '新营销', dept: '新营销部', target: 25.0, qty2026: 0, qty2025Full: 0.25, qty2025Same: 0, yoy: 0 },
+      { region: 'C端-京东', area: '新营销', dept: '新营销部', target: 15.0, qty2026: 0.03, qty2025Full: 0.15, qty2025Same: 0, yoy: 100.0 },
+      { region: 'C端-阿里', area: '新营销', dept: '新营销部', target: 8.0, qty2026: 0, qty2025Full: 0, qty2025Same: 0, yoy: 0 },
+      { region: '上海', area: '华东', dept: '医院销售部', target: 7.0, qty2026: 0.61, qty2025Full: 0.67, qty2025Same: 0, yoy: 100.0 },
+      { region: '江苏', area: '华东', dept: '医院销售部', target: 6.0, qty2026: 0.13, qty2025Full: 0.17, qty2025Same: 0, yoy: 100.0 },
+      { region: '浙江', area: '华东', dept: '医院销售部', target: 6.0, qty2026: 0.03, qty2025Full: 0.39, qty2025Same: 0, yoy: 100.0 },
+      { region: '山东', area: '华北', dept: '医院销售部', target: 3.9, qty2026: 0.05, qty2025Full: 0.12, qty2025Same: 0, yoy: 100.0 },
+      { region: '北京', area: '华北', dept: '医院销售部', target: 3.9, qty2026: 0.08, qty2025Full: 0.06, qty2025Same: 0.06, yoy: 33.3 },
+      { region: '湖南', area: '华南', dept: '医院销售部', target: 3.0, qty2026: 0.46, qty2025Full: 1.02, qty2025Same: 0.02, yoy: 2200.0 },
+      { region: '广东', area: '华南', dept: '医院销售部', target: 3.0, qty2026: 0.04, qty2025Full: 0.01, qty2025Same: 0, yoy: 100.0 },
+      { region: 'C端-其他', area: '新营销', dept: '新营销部', target: 2.0, qty2026: 0.03, qty2025Full: 0.16, qty2025Same: 0.01, yoy: 200.0 },
+      { region: '安徽', area: '华东', dept: '医院销售部', target: 2.0, qty2026: 0.06, qty2025Full: 0, qty2025Same: 0, yoy: 0 },
+      { region: '辽宁', area: '华北', dept: '医院销售部', target: 2.0, qty2026: 0.08, qty2025Full: 0.20, qty2025Same: 0, yoy: 100.0 },
+      { region: '河北', area: '华北', dept: '医院销售部', target: 1.4, qty2026: 0.16, qty2025Full: 0.06, qty2025Same: 0, yoy: 100.0 },
+      { region: '湖北', area: '华西', dept: '医院销售部', target: 1.2, qty2026: 0.05, qty2025Full: 0.06, qty2025Same: 0.02, yoy: 150.0 },
+      { region: '天津', area: '华北', dept: '医院销售部', target: 1.2, qty2026: 0, qty2025Full: 0, qty2025Same: 0, yoy: 0 },
+      { region: '四川', area: '华西', dept: '医院销售部', target: 1.2, qty2026: 0.35, qty2025Full: 0, qty2025Same: 0, yoy: 0 },
+      { region: '甘肃', area: '华西', dept: '医院销售部', target: 1.1, qty2026: 0.02, qty2025Full: 0, qty2025Same: 0, yoy: 0 },
+      { region: '广西', area: '华南', dept: '医院销售部', target: 1.1, qty2026: 0.03, qty2025Full: 0, qty2025Same: 0, yoy: 0 },
+      { region: '黑龙江', area: '华北', dept: '医院销售部', target: 0.8, qty2026: 0.04, qty2025Full: 0.02, qty2025Same: 0, yoy: 100.0 },
+      { region: '陕西', area: '华西', dept: '医院销售部', target: 0.6, qty2026: 0.01, qty2025Full: 0, qty2025Same: 0, yoy: 0 },
+      { region: '重庆', area: '华西', dept: '医院销售部', target: 0.6, qty2026: 0.05, qty2025Full: 0.12, qty2025Same: 0, yoy: 100.0 },
+      { region: '河南', area: '华西', dept: '医院销售部', target: 0.6, qty2026: 0.02, qty2025Full: 0, qty2025Same: 0, yoy: 0 },
+      { region: '云南', area: '华西', dept: '医院销售部', target: 0.6, qty2026: 0.04, qty2025Full: 0.04, qty2025Same: 0.01, yoy: 300.0 },
+      { region: '福建', area: '华南', dept: '医院销售部', target: 0.5, qty2026: 0, qty2025Full: 0, qty2025Same: 0, yoy: 0 },
+      { region: '山西', area: '华北', dept: '医院销售部', target: 0.45, qty2026: 0.01, qty2025Full: 0, qty2025Same: 0, yoy: 100.0 },
+      { region: '贵州', area: '华西', dept: '医院销售部', target: 0.45, qty2026: 0.01, qty2025Full: 0.01, qty2025Same: 0, yoy: 100.0 },
+      { region: '江西', area: '华南', dept: '医院销售部', target: 0.35, qty2026: 0.02, qty2025Full: 0, qty2025Same: 0, yoy: 0 },
+      { region: '新疆', area: '华西', dept: '医院销售部', target: 0.35, qty2026: 0, qty2025Full: 0, qty2025Same: 0, yoy: 0 },
+      { region: '内蒙古', area: '华北', dept: '医院销售部', target: 0.35, qty2026: 0.01, qty2025Full: 0, qty2025Same: 0, yoy: 0 },
+      { region: '吉林', area: '华北', dept: '医院销售部', target: 0.35, qty2026: 0.04, qty2025Full: 0.01, qty2025Same: 0, yoy: 100.0 },
+      { region: '宁夏', area: '华西', dept: '医院销售部', target: 0, qty2026: 0.03, qty2025Full: 0, qty2025Same: 0, yoy: 0 },
+      { region: '海南', area: '华南', dept: '医院销售部', target: 0, qty2026: 0, qty2025Full: 0, qty2025Same: 0, yoy: 0 },
+      { region: '西藏', area: '华西', dept: '医院销售部', target: 0, qty2026: 0, qty2025Full: 0, qty2025Same: 0, yoy: 0 },
+      { region: '青海', area: '华西', dept: '医院销售部', target: 0, qty2026: 0, qty2025Full: 0, qty2025Same: 0, yoy: 0 }
+    ]
+  },
+  // 每日发货数据
+  daily2026: [
+    ['01-04',33.00],['01-05',4.91],['01-06',16.15],['01-07',5.51],['01-08',8.12],
+    ['01-09',9.70],['01-13',47.93],['01-14',4.36],['01-15',11.05],['01-16',30.98],
+    ['01-19',0.41],['01-20',16.42],['01-21',17.43],['01-22',7.54],['01-23',29.83],
+    ['01-26',14.91],['01-27',78.34],['01-28',33.96],['01-29',22.20],['01-30',76.71],
+    ['02-02',8.09],['02-03',6.29],['02-04',2.72],['02-05',1.10],['02-06',2.85],
+    ['02-09',0.79],['02-10',-0.26],['02-25',3.20],['02-26',1.70],['02-27',6.81],
+    ['02-28',2.23],['03-02',1.34],['03-03',8.06],['03-04',5.30],['03-05',7.37],
+    ['03-06',27.67],['03-09',12.08],['03-10',19.23],['03-11',2.45],['03-12',6.64],
+    ['03-13',1.21],['03-16',1.34],['03-17',6.47],['03-18',9.54],['03-19',31.84],
+    ['03-20',6.14],['03-23',15.83],['03-24',16.58],['03-25',4.19],['03-26',23.24],
+    ['03-27',12.03],['03-30',8.85],['03-31',10.76],['04-01',14.20],['04-02',0.26],
+    ['04-03',6.09]
+  ]
+};
+
+let currentFilter = '整体';
+let currentMonthlyProduct = 'all';  // 月度趋势（万元）当前选中的产品
+let currentMonthlyQtyProduct = '炎琥宁80mg';  // 月度趋势（数量）当前选中的产品
+
+// ============================================================
+// KPI卡片渲染（包含：年度目标、发货金额、达成率、同比、三个月环比）
+// ============================================================
+function renderKPI(dept) {
+  let target, actual, q1_2025;
+  let monthly2026;
+  
+  if (dept === '整体') {
+    // 整体：炎琥宁（两部门）+ 萘哌地尔（两部门合计）
+    target = DATA.products['炎琥宁80mg-医院销售部'].target_wan 
+           + DATA.products['炎琥宁80mg-新营销部'].target_wan 
+           + DATA.products['萘哌地尔-医院销售部'].target_wan 
+           + DATA.products['萘哌地尔-新营销部'].target_wan;
+    actual = DATA.products['炎琥宁80mg-医院销售部'].actual_wan 
+           + DATA.products['炎琥宁80mg-新营销部'].actual_wan 
+           + DATA.products['萘哌地尔-医院销售部'].actual_wan 
+           + DATA.products['萘哌地尔-新营销部'].actual_wan;
+    q1_2025 = DATA.overview.total_2025_same_wan;
+    monthly2026 = DATA.monthly['2026'];
+  } else if (dept === '新营销部') {
+    // 新营销部：炎琥宁（任务为0）+ 萘哌地尔（新营销部）
+    target = DATA.products['炎琥宁80mg-新营销部'].target_wan + DATA.products['萘哌地尔-新营销部'].target_wan;
+    actual = DATA.products['炎琥宁80mg-新营销部'].actual_wan + DATA.products['萘哌地尔-新营销部'].actual_wan;
+    q1_2025 = DATA.dept2025Same[dept] || 0;
+    monthly2026 = DATA.monthlyDept[dept] ? DATA.monthlyDept[dept]['2026'] : null;
+  } else if (dept === '医院销售部') {
+    // 医院销售部：炎琥宁（医院销售部）+ 萘哌地尔（医院销售部）
+    target = DATA.products['炎琥宁80mg-医院销售部'].target_wan + DATA.products['萘哌地尔-医院销售部'].target_wan;
+    actual = DATA.products['炎琥宁80mg-医院销售部'].actual_wan + DATA.products['萘哌地尔-医院销售部'].actual_wan;
+    q1_2025 = DATA.dept2025Same[dept] || 0;
+    monthly2026 = DATA.monthlyDept[dept] ? DATA.monthlyDept[dept]['2026'] : null;
+  } else {
+    const deptRegions = DATA.regions.filter(r => r.dept === dept);
+    target = deptRegions.reduce((s, r) => s + r.target_wan, 0);
+    actual = deptRegions.reduce((s, r) => s + r.actual_wan, 0);
+    q1_2025 = DATA.dept2025Same[dept] || 0;
+    monthly2026 = DATA.monthlyDept[dept] ? DATA.monthlyDept[dept]['2026'] : null;
+  }
+  
+  // 基础指标计算
+  const rate = target > 0 ? (actual / target * 100) : 0;
+  const yoy = q1_2025 > 0 ? ((actual - q1_2025) / q1_2025 * 100) : (actual > 0 ? 100 : 0);
+  // 目标进度按月计算：当前月份 / 12 * 100%，4月=4/12=33.3%
+  const currentMonth = 4;
+  const timeProgress = (currentMonth / 12 * 100);
+
+  // 更新DOM
+  document.getElementById('kpi-target').textContent = target.toLocaleString('zh-CN', {maximumFractionDigits: 0});
+  document.getElementById('kpi-actual').textContent = actual.toLocaleString('zh-CN', {maximumFractionDigits: 1});
+  // 达成率颜色：>=时间进度(33.3%)绿色，否则橙色
+  const rateColor = rate >= timeProgress ? '#4caf50' : '#ff9800';
+  document.getElementById('kpi-rate').innerHTML = `${rate.toFixed(1)}<span style="font-size:16px;color:${rateColor}">%</span>`;
+  document.getElementById('kpi-rate').style.color = rateColor;
+  document.getElementById('kpi-progress').textContent = `月累计目标进度 ${timeProgress.toFixed(1)}%`;
+
+  const yoyColor = yoy >= 0 ? '#4caf50' : '#f44336';
+  const yoySign = yoy >= 0 ? '+' : '';
+  document.getElementById('kpi-yoy').style.color = yoyColor;
+  document.getElementById('kpi-yoy').innerHTML = `${yoySign}${yoy.toFixed(1)}<span style="font-size:16px">%</span>`;
+  document.getElementById('kpi-yoy-unit').textContent = '';
+}
+
+// ============================================================
+// 产品卡片渲染
+// ============================================================
+// 当前产品图表筛选状态
+let currentProductChartFilter = 'amount';
+
+function renderProducts(dept) {
+  const container = document.getElementById('ring-progress');
+  if (!container) return;
+  
+  let cards = [];
+
+  if (dept === '整体') {
+    cards = [
+      {
+        name: '炎琥宁80mg',
+        target: DATA.products['炎琥宁80mg-医院销售部'].target_wan + DATA.products['炎琥宁80mg-新营销部'].target_wan,
+        actual: DATA.products['炎琥宁80mg-医院销售部'].actual_wan + DATA.products['炎琥宁80mg-新营销部'].actual_wan
+      },
+      {
+        name: '萘哌地尔',
+        target: DATA.products['萘哌地尔-医院销售部'].target_wan + DATA.products['萘哌地尔-新营销部'].target_wan,
+        actual: DATA.products['萘哌地尔-医院销售部'].actual_wan + DATA.products['萘哌地尔-新营销部'].actual_wan
+      }
+    ];
+  } else if (dept === '医院销售部') {
+    cards = [
+      { name: '炎琥宁80mg', target: DATA.products['炎琥宁80mg-医院销售部'].target_wan, actual: DATA.products['炎琥宁80mg-医院销售部'].actual_wan },
+      { name: '萘哌地尔', target: DATA.products['萘哌地尔-医院销售部'].target_wan, actual: DATA.products['萘哌地尔-医院销售部'].actual_wan }
+    ];
+  } else {
+    cards = [
+      { name: '炎琥宁80mg', target: DATA.products['炎琥宁80mg-新营销部'].target_wan, actual: DATA.products['炎琥宁80mg-新营销部'].actual_wan },
+      { name: '萘哌地尔', target: DATA.products['萘哌地尔-新营销部'].target_wan, actual: DATA.products['萘哌地尔-新营销部'].actual_wan }
+    ];
+  }
+
+  const cx = 55, cy = 55, radius = 44;
+  const circumference = 2 * Math.PI * radius;
+
+  container.innerHTML = cards.map(p => {
+    const rate = p.target > 0 ? (p.actual / p.target * 100) : 0;
+    const rateFixed = rate.toFixed(1);
+    const displayRate = Math.min(rate, 100);
+    const remaining = p.target - p.actual;
+
+    // 计算进度弧长
+    const progressLength = (displayRate / 100) * circumference;
+    const dashArray = `${progressLength} ${circumference}`;
+
+    return `<div class="ring-card">
+      <div class="ring-chart-wrapper">
+        <svg class="ring-svg" viewBox="0 0 110 110">
+          <!-- 灰色背景轨道 -->
+          <circle class="ring-track" cx="${cx}" cy="${cy}" r="${radius}"/>
+          <!-- 蓝色进度环 -->
+          <circle class="ring-progress" cx="${cx}" cy="${cy}" r="${radius}" stroke-dasharray="${dashArray}" transform="rotate(-90 ${cx} ${cy})"/>
+          <!-- 中心白色圆形 -->
+          <circle class="ring-center" cx="${cx}" cy="${cy}" r="32"/>
+          <!-- 百分比文字 -->
+          <text class="ring-percent" x="${cx}" y="${cy - 2}" text-anchor="middle">${rateFixed}%</text>
+          <text class="ring-label" x="${cx}" y="${cy + 12}" text-anchor="middle">达成率</text>
+        </svg>
+      </div>
+      <div class="ring-info">
+        <div class="ring-product-name">${p.name}</div>
+        <div class="ring-amount">${p.actual.toFixed(1)}<span class="ring-unit">万元</span></div>
+        <div class="ring-target">年目标 ${p.target.toLocaleString()}万元</div>
+        <div class="ring-detail">差距 ${remaining.toFixed(1)}万元</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ============================================================
+// 地区排名表
+// ============================================================
+function renderRegionTable(filter) {
+  let regions = filter === '整体'
+    ? [...DATA.regions]
+    : DATA.regions.filter(r => r.dept === filter);
+  // 按发货金额（万元）从大到小排序
+  regions.sort((a, b) => b.actual_wan - a.actual_wan);
+  const tbody = document.getElementById('region-tbody');
+  // 时间进度：100% / 12 * 4月 = 33.3%
+  const timeProgress = 100 / 12 * 4;
+  tbody.innerHTML = regions.map((r, i) => {
+    const rate = r.target_wan > 0 ? (r.actual_wan / r.target_wan * 100) : 0;
+    const badge = i < 3 ? `<span class="rank-badge rank-${i+1}">${i+1}</span>` : (i + 1);
+    // 达成率 >= 时间进度(33.3%) 显示绿色，否则橙色
+    const rateColor = rate >= timeProgress ? '#4caf50' : '#ff9800';
+    // 目标金额差距 = 发货 - 目标
+    const gap = r.actual_wan - r.target_wan;
+    const gapColor = gap >= 0 ? '#4caf50' : '#f44336';
+    const gapSign = gap >= 0 ? '+' : '';
+    return `<tr>
+      <td>${badge}</td>
+      <td>${r.area}</td>
+      <td>${r.region}</td>
+      <td>${r.target_wan.toLocaleString()}</td>
+      <td>${r.actual_wan.toFixed(1)}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div style="flex:1;min-width:50px;height:6px;background:#e3f2fd;border-radius:3px;overflow:hidden;">
+            <div style="width:${Math.min(rate, 100)}%;height:100%;background:${rateColor};border-radius:3px;"></div>
+          </div>
+          <span style="font-size:11px;color:${rateColor};font-weight:600;white-space:nowrap;">${rate.toFixed(1)}%</span>
+        </div>
+      </td>
+      <td style="color:${gapColor};font-weight:600;">${gapSign}${gap.toFixed(1)}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ============================================================
+// 地区发货数量排名
+// ============================================================
+let currentProductFilter = '炎琥宁80mg';
+
+function renderRegionQtyTable(productFilter, deptFilter) {
+  deptFilter = deptFilter || currentFilter || '整体';
+  let data = DATA.regionQty[productFilter] || [];
+
+  // 按部门过滤
+  if (deptFilter !== '整体') {
+    data = data.filter(item => item.dept === deptFilter);
+  }
+
+  // 按26年发货量排序
+  data.sort((a, b) => b.qty2026 - a.qty2026);
+  
+  const tbody = document.getElementById('region-qty-tbody');
+  // 时间进度：100% / 12 * 4月 = 33.3%
+  const timeProgress = 100 / 12 * 4;
+  
+  tbody.innerHTML = data.map((item, i) => {
+    const rate = item.target > 0 ? (item.qty2026 / item.target * 100) : 0;
+    const badge = i < 3 ? `<span class="rank-badge rank-${i+1}">${i+1}</span>` : (i + 1);
+    // 达成率 >= 时间进度(33.3%) 显示绿色，否则橙色
+    const rateColor = rate >= timeProgress ? '#4caf50' : '#ff9800';
+    const yoyColor = item.yoy >= 0 ? '#4caf50' : '#f44336';
+    const yoySign = item.yoy >= 0 ? '+' : '';
+    return `<tr>
+      <td>${badge}</td>
+      <td>${item.area}</td>
+      <td>${item.region}</td>
+      <td>${item.target.toLocaleString()}</td>
+      <td>${item.qty2026.toLocaleString()}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div style="flex:1;min-width:50px;height:6px;background:#e3f2fd;border-radius:3px;overflow:hidden;">
+            <div style="width:${Math.min(rate, 100)}%;height:100%;background:${rateColor};border-radius:3px;"></div>
+          </div>
+          <span style="font-size:11px;color:${rateColor};font-weight:600;white-space:nowrap;">${rate.toFixed(1)}%</span>
+        </div>
+      </td>
+      <td>${item.qty2025Full.toLocaleString()}</td>
+      <td>${item.qty2025Same.toLocaleString()}</td>
+      <td style="color:${yoyColor};font-weight:600;">${yoySign}${item.yoy.toFixed(1)}%</td>
+    </tr>`;
+  }).join('');
+}
+
+function filterProduct(product) {
+  currentProductFilter = product;
+  
+  // 更新产品切片器按钮状态
+  document.querySelectorAll('.product-filter-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.product === product);
+  });
+  
+  // 更新地区发货数量排名（联动当前部门筛选）
+  renderRegionQtyTable(product, currentFilter);
+}
+
+// ============================================================
+// 月度发货趋势图（万元）
+// ============================================================
+function initMonthlyChart() {
+  const chart = echarts.init(document.getElementById('chart-monthly'));
+  updateMonthlyChart(chart, currentFilter, currentMonthlyProduct);
+  window._monthlyChart = chart;
+  window.addEventListener('resize', () => chart.resize());
+}
+
+function updateMonthlyChart(chart, deptFilter, productFilter) {
+  const months = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  let data2025, data2026;
+  
+  if (productFilter === 'all') {
+    // 全部产品：使用整体数据
+    if (deptFilter === '整体') {
+      data2025 = months.map((_,i) => DATA.monthly['2025'][String(i+1)] || 0);
+      data2026 = months.map((_,i) => DATA.monthly['2026'][String(i+1)] || null);
+    } else if (DATA.monthlyDept[deptFilter]) {
+      data2025 = months.map((_,i) => DATA.monthlyDept[deptFilter]['2025'][String(i+1)] || 0);
+      data2026 = months.map((_,i) => DATA.monthlyDept[deptFilter]['2026'][String(i+1)] || null);
+    } else {
+      data2025 = months.map(() => 0);
+      data2026 = months.map(() => null);
+    }
+  } else if (productFilter === '炎琥宁80mg') {
+    // 炎琥宁：根据部门显示不同数据
+    if (deptFilter === '整体') {
+      // 整体：合并医院销售部和新营销部
+      const pd1 = DATA.monthlyProduct['炎琥宁80mg-医院销售部'];
+      const pd2 = DATA.monthlyProduct['炎琥宁80mg-新营销部'];
+      data2025 = months.map((_,i) => (pd1['2025'][String(i+1)] || 0) + (pd2['2025'][String(i+1)] || 0));
+      data2026 = months.map((_,i) => {
+        const v1 = pd1['2026'][String(i+1)];
+        const v2 = pd2['2026'][String(i+1)];
+        return (v1 != null || v2 != null) ? (v1 || 0) + (v2 || 0) : null;
+      });
+    } else if (deptFilter === '医院销售部') {
+      // 医院销售部：只显示医院销售部的炎琥宁
+      const pd = DATA.monthlyProduct['炎琥宁80mg-医院销售部'];
+      data2025 = months.map((_,i) => pd['2025'][String(i+1)] || 0);
+      data2026 = months.map((_,i) => pd['2026'][String(i+1)] || null);
+    } else if (deptFilter === '新营销部') {
+      // 新营销部：只显示新营销部的炎琥宁
+      const pd = DATA.monthlyProduct['炎琥宁80mg-新营销部'];
+      data2025 = months.map((_,i) => pd['2025'][String(i+1)] || 0);
+      data2026 = months.map((_,i) => pd['2026'][String(i+1)] || null);
+    }
+  } else if (productFilter === '萘哌地尔') {
+    // 萘哌地尔：根据部门显示不同数据
+    if (deptFilter === '整体') {
+      // 整体：合并医院销售部和新营销部
+      const pd1 = DATA.monthlyProduct['萘哌地尔-医院销售部'];
+      const pd2 = DATA.monthlyProduct['萘哌地尔-新营销部'];
+      data2025 = months.map((_,i) => (pd1['2025'][String(i+1)] || 0) + (pd2['2025'][String(i+1)] || 0));
+      data2026 = months.map((_,i) => {
+        const v1 = pd1['2026'][String(i+1)];
+        const v2 = pd2['2026'][String(i+1)];
+        return (v1 != null || v2 != null) ? (v1 || 0) + (v2 || 0) : null;
+      });
+    } else if (deptFilter === '医院销售部') {
+      // 医院销售部：只显示医院销售部的萘哌地尔
+      const pd = DATA.monthlyProduct['萘哌地尔-医院销售部'];
+      data2025 = months.map((_,i) => pd['2025'][String(i+1)] || 0);
+      data2026 = months.map((_,i) => pd['2026'][String(i+1)] || null);
+    } else if (deptFilter === '新营销部') {
+      // 新营销部：只显示新营销部的萘哌地尔
+      const pd = DATA.monthlyProduct['萘哌地尔-新营销部'];
+      data2025 = months.map((_,i) => pd['2025'][String(i+1)] || 0);
+      data2026 = months.map((_,i) => pd['2026'][String(i+1)] || null);
+    }
+  }
+
+  chart.setOption({
+    backgroundColor: 'transparent',
+    tooltip: {
+      trigger: 'axis',
+      backgroundColor: '#fff',
+      borderColor: '#bbdefb',
+      textStyle: { color: '#2c4a6e', fontSize: 12 },
+      formatter: p => p.map(s => `${s.marker} ${s.seriesName}: <b>${s.value != null ? s.value.toFixed(2) + '万' : '—'}</b>`).join('<br>')
+    },
+    legend: { data: ['2025年','2026年'], top: 0, right: 10, textStyle: { color: '#5a7a98', fontSize: 11 } },
+    grid: { top: 35, left: 55, right: 20, bottom: 30 },
+    xAxis: { type: 'category', data: months, axisLine: { lineStyle: { color: '#bbdefb' } }, axisLabel: { color: '#5a7a98' }, axisTick: { show: false } },
+    yAxis: { type: 'value', axisLine: { show: false }, axisLabel: { color: '#90a4ae' }, splitLine: { lineStyle: { color: '#e3f2fd', type: 'dashed' } } },
+    series: [
+      { name: '2025年', type: 'bar', data: data2025, barWidth: 24, itemStyle: { color: 'rgba(21,101,192,0.12)', borderRadius: [3,3,0,0] } },
+      { name: '2026年', type: 'line', data: data2026, smooth: true, symbol: 'circle', symbolSize: 7, lineStyle: { width: 2.5, color: '#1565c0' }, itemStyle: { color: '#1565c0' },
+        areaStyle: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: 'rgba(21,101,192,0.2)' }, { offset: 1, color: 'rgba(21,101,192,0.01)' }] } },
+        label: { show: true, position: 'top', color: '#1565c0', fontSize: 10, fontWeight: 600, formatter: p => p.value != null ? p.value.toFixed(0) : '' }
+      }
+    ]
+  });
+}
+
+// 月度发货趋势产品筛选（万元）
+function filterMonthlyProduct(product) {
+  currentMonthlyProduct = product;
+  
+  // 更新切片器按钮状态
+  const chartEl = document.getElementById('chart-monthly');
+  if (chartEl) {
+    const panel = chartEl.closest('.panel');
+    if (panel) {
+      panel.querySelectorAll('.product-filter-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.product === product);
+      });
+    }
+  }
+  
+  // 更新图表
+  if (window._monthlyChart) {
+    updateMonthlyChart(window._monthlyChart, currentFilter, product);
+  }
+}
+
+// ============================================================
+// 月度发货趋势图（数量）
+// ============================================================
+function initMonthlyQtyChart() {
+  const chart = echarts.init(document.getElementById('chart-monthly-qty'));
+  updateMonthlyQtyChart(chart, currentMonthlyQtyProduct);
+  window._monthlyQtyChart = chart;
+  window.addEventListener('resize', () => chart.resize());
+}
+
+function updateMonthlyQtyChart(chart, productFilter, deptFilter) {
+  deptFilter = deptFilter || currentFilter || '整体';
+  const months = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  
+  let data2025, data2026, avgTarget;
+  
+  if (productFilter === '炎琥宁80mg') {
+    // 炎琥宁：根据部门显示不同数据
+    if (deptFilter === '整体') {
+      // 整体：合并医院销售部和新营销部
+      const pd1 = DATA.monthlyQty['炎琥宁80mg-医院销售部'];
+      const pd2 = DATA.monthlyQty['炎琥宁80mg-新营销部'];
+      data2025 = months.map((_,i) => (pd1['2025'][String(i+1)] || 0) + (pd2['2025'][String(i+1)] || 0));
+      data2026 = months.map((_,i) => {
+        const v1 = pd1['2026'][String(i+1)];
+        const v2 = pd2['2026'][String(i+1)];
+        return (v1 != null || v2 != null) ? (v1 || 0) + (v2 || 0) : null;
+      });
+      // 月平均任务量 = 医院部月平均（新营销部炎琥宁任务为0）
+      avgTarget = DATA.monthlyQtyTarget['炎琥宁80mg-医院销售部'].monthlyAvg;
+    } else if (deptFilter === '医院销售部') {
+      // 医院销售部：只显示医院销售部的炎琥宁
+      const pd = DATA.monthlyQty['炎琥宁80mg-医院销售部'];
+      data2025 = months.map((_,i) => pd['2025'][String(i+1)] || 0);
+      data2026 = months.map((_,i) => pd['2026'][String(i+1)] || null);
+      avgTarget = DATA.monthlyQtyTarget['炎琥宁80mg-医院销售部'].monthlyAvg;
+    } else if (deptFilter === '新营销部') {
+      // 新营销部：只显示新营销部的炎琥宁
+      const pd = DATA.monthlyQty['炎琥宁80mg-新营销部'];
+      data2025 = months.map((_,i) => pd['2025'][String(i+1)] || 0);
+      data2026 = months.map((_,i) => pd['2026'][String(i+1)] || null);
+      avgTarget = DATA.monthlyQtyTarget['炎琥宁80mg-新营销部'].monthlyAvg;
+    }
+  } else if (productFilter === '萘哌地尔') {
+    // 萘哌地尔：根据部门显示不同数据
+    if (deptFilter === '整体') {
+      // 整体：合并医院销售部和新营销部
+      const pd1 = DATA.monthlyQty['萘哌地尔-医院销售部'];
+      const pd2 = DATA.monthlyQty['萘哌地尔-新营销部'];
+      data2025 = months.map((_,i) => (pd1['2025'][String(i+1)] || 0) + (pd2['2025'][String(i+1)] || 0));
+      data2026 = months.map((_,i) => {
+        const v1 = pd1['2026'][String(i+1)];
+        const v2 = pd2['2026'][String(i+1)];
+        return (v1 != null || v2 != null) ? (v1 || 0) + (v2 || 0) : null;
+      });
+      // 月平均任务量 = 医院部月平均 + 新营销部月平均
+      avgTarget = DATA.monthlyQtyTarget['萘哌地尔-医院销售部'].monthlyAvg + DATA.monthlyQtyTarget['萘哌地尔-新营销部'].monthlyAvg;
+    } else if (deptFilter === '医院销售部') {
+      // 医院销售部：只显示医院销售部的萘哌地尔
+      const pd = DATA.monthlyQty['萘哌地尔-医院销售部'];
+      data2025 = months.map((_,i) => pd['2025'][String(i+1)] || 0);
+      data2026 = months.map((_,i) => pd['2026'][String(i+1)] || null);
+      avgTarget = DATA.monthlyQtyTarget['萘哌地尔-医院销售部'].monthlyAvg;
+    } else if (deptFilter === '新营销部') {
+      // 新营销部：只显示新营销部的萘哌地尔
+      const pd = DATA.monthlyQty['萘哌地尔-新营销部'];
+      data2025 = months.map((_,i) => pd['2025'][String(i+1)] || 0);
+      data2026 = months.map((_,i) => pd['2026'][String(i+1)] || null);
+      avgTarget = DATA.monthlyQtyTarget['萘哌地尔-新营销部'].monthlyAvg;
+    }
+  }
+  
+  // 根据产品设置单位
+  const unit = productFilter === '炎琥宁80mg' ? '万支' : '万盒';
+  // 2025年和2026年都用蓝色
+  const lineColor = '#1565c0';
+  // 月平均任务量线用橘色
+  const avgLineColor = '#e65100';
+  
+  // 月平均任务量参考线数据（12个月都是同一个值）
+  const avgTargetData = months.map(() => avgTarget);
+
+  chart.setOption({
+    backgroundColor: 'transparent',
+    tooltip: {
+      trigger: 'axis',
+      backgroundColor: '#fff',
+      borderColor: '#bbdefb',
+      textStyle: { color: '#2c4a6e', fontSize: 12 },
+      formatter: function(params) {
+        let result = params.map(s => {
+          if (s.seriesName === '月平均任务量') {
+            return `${s.marker} ${s.seriesName}: <b>${s.value != null ? s.value.toFixed(2) + unit : '—'}</b>`;
+          }
+          return `${s.marker} ${s.seriesName}: <b>${s.value != null ? s.value.toFixed(2) + unit : '—'}</b>`;
+        }).join('<br>');
+        return result;
+      }
+    },
+    legend: { data: ['2025年','2026年','月平均任务量'], top: 0, right: 10, textStyle: { color: '#5a7a98', fontSize: 11 } },
+    grid: { top: 35, left: 55, right: 20, bottom: 30 },
+    xAxis: { type: 'category', data: months, axisLine: { lineStyle: { color: '#bbdefb' } }, axisLabel: { color: '#5a7a98' }, axisTick: { show: false } },
+    yAxis: { type: 'value', axisLine: { show: false }, axisLabel: { color: '#90a4ae', formatter: '{value}' }, splitLine: { lineStyle: { color: '#e3f2fd', type: 'dashed' } } },
+    series: [
+      { name: '2025年', type: 'bar', data: data2025, barWidth: 20, itemStyle: { color: 'rgba(144,164,174,0.3)', borderRadius: [3,3,0,0] } },
+      { name: '2026年', type: 'line', data: data2026, smooth: true, symbol: 'circle', symbolSize: 6, lineStyle: { width: 2.5, color: lineColor }, itemStyle: { color: lineColor },
+        areaStyle: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: 'rgba(21,101,192,0.2)' }, { offset: 1, color: 'rgba(21,101,192,0.01)' }] } },
+        label: { show: true, position: 'top', color: lineColor, fontSize: 10, fontWeight: 600, formatter: p => p.value != null ? p.value.toFixed(1) : '' }
+      },
+      { name: '月平均任务量', type: 'line', data: avgTargetData, symbol: 'circle', symbolSize: 6, lineStyle: { width: 2, color: avgLineColor, type: 'dashed' }, itemStyle: { color: avgLineColor },
+        tooltip: { valueFormatter: v => v != null ? v.toFixed(2) + unit : '—' },
+        markPoint: {
+          symbol: 'rect',
+          symbolSize: [1, 1],
+          itemStyle: { color: avgLineColor },
+          label: { show: true, position: 'right', color: avgLineColor, fontSize: 10, fontWeight: 600, formatter: () => avgTarget.toFixed(1) + unit, distance: 5 },
+          data: [{ coord: [11, avgTarget], value: avgTarget, itemStyle: { color: avgLineColor } }]
+        }
+      }
+    ]
+  });
+}
+
+// 月度发货趋势产品筛选（数量）
+function filterMonthlyQtyProduct(product) {
+  currentMonthlyQtyProduct = product;
+  
+  // 更新切片器按钮状态
+  const chartEl = document.getElementById('chart-monthly-qty');
+  if (chartEl) {
+    const panel = chartEl.closest('.panel');
+    if (panel) {
+      panel.querySelectorAll('.product-filter-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.qtyProduct === product);
+      });
+    }
+  }
+  
+  // 更新图表
+  if (window._monthlyQtyChart) {
+    updateMonthlyQtyChart(window._monthlyQtyChart, product);
+  }
+}
+
+// ============================================================
+// 筛选逻辑 - 联动所有KPI卡片和图表
+// ============================================================
+function filterDept(dept) {
+  currentFilter = dept;
+  
+  // 更新顶部切片器按钮状态
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.textContent.trim() === dept);
+  });
+
+  // 更新手机端底部切片器按钮状态
+  document.querySelectorAll('.mobile-filter-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('data-dept') === dept);
+  });
+
+  // 联动更新所有KPI卡片（年度目标、发货金额、达成率、同比、三个月环比）
+  renderKPI(dept);
+  
+  // 更新产品卡片
+  renderProducts(dept);
+  
+  // 更新地区排名表
+  renderRegionTable(dept);
+
+  // 更新地区发货数量排名（联动部门筛选）
+  renderRegionQtyTable(currentProductFilter, dept);
+
+  // 更新月度发货趋势图（万元）- 按部门和产品过滤
+  if (window._monthlyChart) {
+    updateMonthlyChart(window._monthlyChart, dept, currentMonthlyProduct);
+  }
+  
+  // 更新月度发货趋势图（数量）- 按部门过滤
+  if (window._monthlyQtyChart) {
+    updateMonthlyQtyChart(window._monthlyQtyChart, currentMonthlyQtyProduct, dept);
+  }
+  
+}
+
+// ============================================================
+// 初始化
+// ============================================================
+window.onload = () => {
+  renderKPI('整体');
+  renderProducts('整体');
+  renderRegionTable('整体');
+  renderRegionQtyTable('炎琥宁80mg', '整体');
+  initMonthlyChart();
+  initMonthlyQtyChart();
+};
+
+// ============================================================
+// 刷新按钮 - Excel数据导入功能
+// ============================================================
+
+// 创建隐藏的文件选择input
+const fileInput = document.createElement('input');
+fileInput.type = 'file';
+fileInput.accept = '.xlsx,.xls';
+fileInput.style.display = 'none';
+fileInput.addEventListener('change', handleFileSelect);
+document.body.appendChild(fileInput);
+
+// 绑定刷新按钮点击事件
+const refreshBtn = document.getElementById('refresh-btn');
+if (refreshBtn) {
+  refreshBtn.onclick = () => fileInput.click();
+}
+
+// 处理文件选择
+function handleFileSelect(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, { type: 'array' });
+      
+      // 解析Excel数据
+      const parsedData = parseExcelData(workbook);
+      
+      // 更新DATA对象
+      updateDataFromExcel(parsedData);
+      
+      // 重新渲染看板
+      renderDashboard();
+      
+      // 显示成功提示
+      showToast('数据更新成功！', 'success');
+      
+      // 更新统计日期
+      const now = new Date();
+      const dateStr = `${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日`;
+      document.querySelector('.subtitle').innerHTML = `产品：炎琥宁80mg · 萘哌地尔 | 统计截至：${dateStr}`;
+      
+    } catch (err) {
+      console.error('解析Excel失败:', err);
+      showToast('数据解析失败，请检查文件格式', 'error');
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// 解析Excel数据
+function parseExcelData(workbook) {
+  const result = {
+    overview: {},
+    monthly: { '2026': {}, '2025': {} },
+    monthlyDept: { '医院销售部': { '2026': {}, '2025': {} }, '新营销部': { '2026': {}, '2025': {} } },
+    products: {},
+    monthlyProduct: {},
+    monthlyQty: {},
+    regions: [],
+    regionQty: { '炎琥宁80mg': [], '萘哌地尔': [] }
+  };
+  
+  // 获取所有工作表名称
+  const sheetNames = workbook.SheetNames;
+  
+  sheetNames.forEach(sheetName => {
+    const worksheet = workbook.Sheets[sheetName];
+    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+    
+    // 根据工作表名称解析不同数据
+    if (sheetName.includes('发货') || sheetName.includes('数据明细')) {
+      parseShipmentData(jsonData, result);
+    } else if (sheetName.includes('任务') || sheetName.includes('目标')) {
+      parseTargetData(jsonData, result);
+    }
+  });
+  
+  return result;
+}
+
+// 解析发货数据
+function parseShipmentData(data, result) {
+  if (!data || data.length < 2) return;
+  
+  // 假设第一行是表头
+  const headers = data[0];
+  const rows = data.slice(1);
+  
+  // 查找关键列索引
+  const dateIdx = headers.findIndex(h => h && (h.includes('日期') || h.includes('时间')));
+  const deptIdx = headers.findIndex(h => h && h.includes('部门'));
+  const productIdx = headers.findIndex(h => h && h.includes('产品'));
+  const amountIdx = headers.findIndex(h => h && (h.includes('金额') || h.includes('无税金额')));
+  const qtyIdx = headers.findIndex(h => h && (h.includes('数量') || h.includes('统计物料')));
+  const regionIdx = headers.findIndex(h => h && (h.includes('地区') || h.includes('省份')));
+  
+  // 汇总数据
+  let totalAmount2026 = 0;
+  let totalAmount2025 = 0;
+  
+  rows.forEach(row => {
+    const dateStr = row[dateIdx];
+    const dept = row[deptIdx] || '医院销售部';
+    const product = row[productIdx] || '';
+    const amount = parseFloat(row[amountIdx]) || 0;
+    const qty = parseFloat(row[qtyIdx]) || 0;
+    const region = row[regionIdx] || '';
+    
+    if (!dateStr) return;
+    
+    const date = new Date(dateStr);
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+    
+    if (year === 2026) {
+      totalAmount2026 += amount;
+      
+      // 按月汇总
+      if (!result.monthly['2026'][month]) result.monthly['2026'][month] = 0;
+      result.monthly['2026'][month] += amount;
+      
+      // 按部门按月汇总
+      if (!result.monthlyDept[dept]) result.monthlyDept[dept] = { '2026': {}, '2025': {} };
+      if (!result.monthlyDept[dept]['2026'][month]) result.monthlyDept[dept]['2026'][month] = 0;
+      result.monthlyDept[dept]['2026'][month] += amount;
+      
+      // 按产品汇总
+      const productKey = product + '-' + dept;
+      if (!result.monthlyProduct[productKey]) result.monthlyProduct[productKey] = { '2026': {}, '2025': {} };
+      if (!result.monthlyProduct[productKey]['2026'][month]) result.monthlyProduct[productKey]['2026'][month] = 0;
+      result.monthlyProduct[productKey]['2026'][month] += amount;
+      
+      // 数量汇总
+      if (!result.monthlyQty[productKey]) result.monthlyQty[productKey] = { '2026': {}, '2025': {} };
+      if (!result.monthlyQty[productKey]['2026'][month]) result.monthlyQty[productKey]['2026'][month] = 0;
+      result.monthlyQty[productKey]['2026'][month] += qty;
+      
+    } else if (year === 2025) {
+      totalAmount2025 += amount;
+      
+      if (!result.monthly['2025'][month]) result.monthly['2025'][month] = 0;
+      result.monthly['2025'][month] += amount;
+      
+      if (!result.monthlyDept[dept]) result.monthlyDept[dept] = { '2026': {}, '2025': {} };
+      if (!result.monthlyDept[dept]['2025'][month]) result.monthlyDept[dept]['2025'][month] = 0;
+      result.monthlyDept[dept]['2025'][month] += amount;
+    }
+  });
+  
+  result.overview.total_actual_wan = totalAmount2026 / 10000;
+  result.overview.total_2025_same_wan = totalAmount2025 / 10000;
+}
+
+// 解析任务/目标数据
+function parseTargetData(data, result) {
+  if (!data || data.length < 2) return;
+  
+  const headers = data[0];
+  const rows = data.slice(1);
+  
+  const productIdx = headers.findIndex(h => h && h.includes('产品'));
+  const deptIdx = headers.findIndex(h => h && h.includes('部门'));
+  const targetIdx = headers.findIndex(h => h && (h.includes('目标') || h.includes('任务')));
+  
+  let totalTarget = 0;
+  
+  rows.forEach(row => {
+    const product = row[productIdx] || '';
+    const dept = row[deptIdx] || '医院销售部';
+    const target = parseFloat(row[targetIdx]) || 0;
+    
+    const productKey = product + '-' + dept;
+    if (!result.products[productKey]) {
+      result.products[productKey] = { target_wan: 0, actual_wan: 0, rate: 0, yoy: 0, dept: dept, parent: product };
+    }
+    result.products[productKey].target_wan = target;
+    totalTarget += target;
+  });
+  
+  result.overview.total_target_wan = totalTarget;
+}
+
+// 更新DATA对象
+function updateDataFromExcel(parsedData) {
+  // 合并概览数据
+  if (parsedData.overview.total_actual_wan) {
+    DATA.overview.total_actual_wan = parsedData.overview.total_actual_wan;
+  }
+  if (parsedData.overview.total_target_wan) {
+    DATA.overview.total_target_wan = parsedData.overview.total_target_wan;
+  }
+  
+  // 重新计算完成率
+  if (DATA.overview.total_target_wan > 0) {
+    DATA.overview.completion_rate = (DATA.overview.total_actual_wan / DATA.overview.total_target_wan * 100).toFixed(1);
+  }
+  
+  // 合并月度数据
+  Object.assign(DATA.monthly['2026'], parsedData.monthly['2026']);
+  Object.assign(DATA.monthly['2025'], parsedData.monthly['2025']);
+  
+  // 合并部门数据
+  Object.keys(parsedData.monthlyDept).forEach(dept => {
+    if (!DATA.monthlyDept[dept]) DATA.monthlyDept[dept] = { '2026': {}, '2025': {} };
+    Object.assign(DATA.monthlyDept[dept]['2026'], parsedData.monthlyDept[dept]['2026']);
+    Object.assign(DATA.monthlyDept[dept]['2025'], parsedData.monthlyDept[dept]['2025']);
+  });
+  
+  // 合并产品数据
+  Object.keys(parsedData.products).forEach(key => {
+    if (!DATA.products[key]) {
+      DATA.products[key] = parsedData.products[key];
+    } else {
+      DATA.products[key].target_wan = parsedData.products[key].target_wan || DATA.products[key].target_wan;
+    }
+  });
+  
+  // 合并月度产品数据
+  Object.keys(parsedData.monthlyProduct).forEach(key => {
+    if (!DATA.monthlyProduct[key]) DATA.monthlyProduct[key] = { '2026': {}, '2025': {} };
+    Object.assign(DATA.monthlyProduct[key]['2026'], parsedData.monthlyProduct[key]['2026']);
+  });
+  
+  // 合并数量数据
+  Object.keys(parsedData.monthlyQty).forEach(key => {
+    if (!DATA.monthlyQty[key]) DATA.monthlyQty[key] = { '2026': {}, '2025': {} };
+    Object.assign(DATA.monthlyQty[key]['2026'], parsedData.monthlyQty[key]['2026']);
+  });
+}
+
+// 显示提示消息
+function showToast(message, type = 'info') {
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  toast.textContent = message;
+  toast.style.cssText = `
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    z-index: 10000;
+    animation: fadeInOut 3s ease;
+    ${type === 'success' ? 'background: #4caf50; color: white;' : 
+      type === 'error' ? 'background: #f44336; color: white;' : 
+      'background: #2196f3; color: white;'}
+  `;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 3000);
+}
+
+// 添加动画样式
+const style = document.createElement('style');
+style.textContent = `
+  @keyframes fadeInOut {
+    0% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+    10% { opacity: 1; transform: translateX(-50%) translateY(0); }
+    90% { opacity: 1; transform: translateX(-50%) translateY(0); }
+    100% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+  }
+`;
+document.head.appendChild(style);
+
+</script>
+
+
+
+
+
+<!-- 手机端底部固定切片器 -->
+<div class="mobile-filter-bar" id="mobile-filter-bar">
+  <button class="mobile-filter-btn active" data-dept="整体" onclick="filterDept('整体')">整体</button>
+  <button class="mobile-filter-btn" data-dept="医院销售部" onclick="filterDept('医院销售部')">医院销售部</button>
+  <button class="mobile-filter-btn" data-dept="新营销部" onclick="filterDept('新营销部')">新营销部</button>
+</div>
+
+</body>
+</html>
