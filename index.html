@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=0.5, maximum-scale=3.0, user-scalable=yes">
 <title>泌尿组2026年销售看板</title>
 <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
@@ -14,6 +14,8 @@ html, body {
   color: #2c4a6e;
   min-height: 100vh;
   width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 .dashboard {
   margin: 0 auto;
@@ -21,6 +23,7 @@ html, body {
   width: 100%;
   max-width: 1920px;
   min-width: 320px;
+  overflow-x: visible;
 }
 .header {
   text-align: left;
@@ -126,14 +129,16 @@ html, body {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 14px;
-  width: 100%;
-  min-width: 100%;
+  width: 1200px;
+  min-width: 1200px;
   box-sizing: border-box;
 }
 /* 窗口小于1400px时，主网格变为3列 */
 @media screen and (max-width: 1400px) {
   .grid-main {
     grid-template-columns: repeat(3, 1fr);
+    width: 100%;
+    min-width: 100%;
   }
   .col-4 {
     grid-column: span 3;
@@ -143,15 +148,23 @@ html, body {
 @media screen and (max-width: 1024px) {
   .grid-main {
     grid-template-columns: repeat(2, 1fr);
+    width: 100%;
+    min-width: 100%;
   }
   .col-4, .col-3, .col-2 {
     grid-column: span 2;
+  }
+  .dashboard, .header {
+    min-width: auto;
+    width: 100%;
   }
 }
 /* 窗口小于768px时，主网格变为1列 */
 @media screen and (max-width: 768px) {
   .grid-main {
     grid-template-columns: 1fr;
+    width: 100%;
+    min-width: 100%;
   }
   .col-4, .col-3, .col-2 {
     grid-column: span 1;
@@ -666,14 +679,23 @@ html, body {
 /* 平板和手机端：隐藏顶部切片器，显示底部固定切片器 */
 @media screen and (max-width: 1024px) {
   #top-filter-bar {
-    display: none;
+    display: none !important;
+    visibility: hidden !important;
   }
   .mobile-filter-bar {
-    display: flex;
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
   }
   /* 为底部固定切片器留出空间 */
   .dashboard {
-    padding: 12px 12px 80px;
+    padding: 12px 12px 120px !important;
+  }
+  /* 确保body有足够的高度 */
+  body {
+    padding-bottom: 100px !important;
+    min-height: 100vh;
+    padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px)) !important;
   }
 }
 
@@ -684,6 +706,7 @@ html, body {
   }
   .header {
     padding: 16px 12px;
+    min-width: 300px;
   }
   /* KPI卡片2×2排列 */
   .kpi-row {
@@ -692,6 +715,7 @@ html, body {
   }
   .kpi-card {
     padding: 12px 10px;
+    min-width: 0;
   }
   .kpi-card .value {
     font-size: 18px;
@@ -699,12 +723,20 @@ html, body {
   .kpi-card .label {
     font-size: 11px;
   }
+  /* 确保手机端可以横向滚动 */
+  .dashboard {
+    min-width: 350px;
+  }
+  .panel {
+    min-width: 0;
+  }
 }
 
 /* 小屏手机 (480px以下) */
 @media screen and (max-width: 480px) {
   .dashboard {
-    padding: 10px 8px 80px;
+    padding: 10px 8px 100px !important;
+    min-width: 320px;
   }
   .header {
     padding: 14px 10px;
@@ -791,7 +823,8 @@ html, body {
 /* 超小屏手机 (360px以下) */
 @media screen and (max-width: 360px) {
   .dashboard {
-    padding: 8px 6px 80px;
+    padding: 8px 6px 100px !important;
+    min-width: 300px;
   }
   .header h1 {
     font-size: 14px;
@@ -817,7 +850,8 @@ html, body {
 /* 手机横屏优化 (768px以下且横向) */
 @media screen and (max-width: 768px) and (orientation: landscape) {
   .dashboard {
-    padding: 10px 12px 70px;
+    padding: 10px 12px 90px !important;
+    min-width: 600px;
   }
   .header {
     padding: 12px;
@@ -923,28 +957,32 @@ html, body {
   border-top: 1px solid #bbdefb;
   padding: 10px 12px;
   gap: 10px;
-  z-index: 9999;
+  z-index: 99999;
   box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
   overflow-x: auto;
   flex-wrap: nowrap;
   justify-content: center;
   -webkit-overflow-scrolling: touch;
+  /* 确保在iOS Safari上固定定位正常工作 */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
 }
 .mobile-filter-btn {
   flex: 1 1 auto;
-  min-width: 80px;
-  max-width: 120px;
-  padding: 12px 8px;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  background: #f5f5f5;
-  color: #666;
-  font-size: 14px;
-  font-weight: 500;
+  min-width: 90px;
+  max-width: 140px;
+  padding: 14px 12px;
+  border: 2px solid #90caf9;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #1976d2;
+  font-size: 15px;
+  font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
   transition: all 0.2s;
   text-align: center;
+  box-shadow: 0 2px 6px rgba(21,101,192,0.15);
 }
 .mobile-filter-btn.active {
   background: linear-gradient(135deg, #1565c0, #1976d2);
@@ -1823,14 +1861,30 @@ function checkMobileFilterBar() {
   
   if (isMobile) {
     // 手机端：隐藏顶部，显示底部
-    if (topFilter) topFilter.style.display = 'none';
-    if (mobileFilter) mobileFilter.style.display = 'flex';
-    if (dashboard) dashboard.style.paddingBottom = '80px';
+    if (topFilter) {
+      topFilter.style.display = 'none';
+      topFilter.style.visibility = 'hidden';
+    }
+    if (mobileFilter) {
+      mobileFilter.style.display = 'flex';
+      mobileFilter.style.visibility = 'visible';
+      mobileFilter.style.opacity = '1';
+    }
+    if (dashboard) dashboard.style.paddingBottom = '100px';
+    // 确保body有足够空间
+    document.body.style.paddingBottom = '80px';
   } else {
     // 桌面端：显示顶部，隐藏底部
-    if (topFilter) topFilter.style.display = 'flex';
-    if (mobileFilter) mobileFilter.style.display = 'none';
+    if (topFilter) {
+      topFilter.style.display = 'flex';
+      topFilter.style.visibility = 'visible';
+    }
+    if (mobileFilter) {
+      mobileFilter.style.display = 'none';
+      mobileFilter.style.visibility = 'hidden';
+    }
     if (dashboard) dashboard.style.paddingBottom = '40px';
+    document.body.style.paddingBottom = '0';
   }
 }
 
@@ -1885,8 +1939,38 @@ window.onload = () => {
   initMonthlyChart();
   initMonthlyQtyChart();
   
-  // 检测手机端并强制显示底部切片器
-  checkMobileFilterBar();
+  // 检测手机端并强制显示底部切片器 - 多次检查确保显示
+  setTimeout(() => {
+    checkMobileFilterBar();
+  }, 100);
+  
+  setTimeout(() => {
+    checkMobileFilterBar();
+    // 强制再次检查，确保手机端切片器显示
+    if (window.innerWidth <= 1024) {
+      const mobileFilter = document.getElementById('mobile-filter-bar');
+      if (mobileFilter) {
+        mobileFilter.style.display = 'flex';
+        mobileFilter.style.visibility = 'visible';
+        mobileFilter.style.opacity = '1';
+        mobileFilter.style.zIndex = '2147483647';
+        console.log('Forced mobile filter display');
+      }
+    }
+  }, 500);
+  
+  // 第三次检查，确保在慢速设备上也能显示
+  setTimeout(() => {
+    if (window.innerWidth <= 1024) {
+      const mobileFilter = document.getElementById('mobile-filter-bar');
+      if (mobileFilter && mobileFilter.style.display !== 'flex') {
+        mobileFilter.style.display = 'flex';
+        mobileFilter.style.visibility = 'visible';
+        mobileFilter.style.opacity = '1';
+        console.log('Final mobile filter check');
+      }
+    }
+  }, 1000);
   
   // 响应式处理：防抖resize
   let resizeTimer;
@@ -2200,8 +2284,8 @@ document.head.appendChild(style);
 
 
 
-<!-- 手机端底部固定切片器 -->
-<div class="mobile-filter-bar" id="mobile-filter-bar">
+<!-- 手机端底部固定切片器 - 放在body结束前确保正确渲染 -->
+<div class="mobile-filter-bar" id="mobile-filter-bar" style="display:none; visibility:hidden;">
   <button class="mobile-filter-btn active" data-dept="整体" onclick="filterDept('整体')">整体</button>
   <button class="mobile-filter-btn" data-dept="医院销售部" onclick="filterDept('医院销售部')">医院销售部</button>
   <button class="mobile-filter-btn" data-dept="新营销部" onclick="filterDept('新营销部')">新营销部</button>
