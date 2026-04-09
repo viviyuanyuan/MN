@@ -456,15 +456,15 @@ html, body {
 
 /* 地区排名表格 */
 .rank-table {
-  width: 100%;
-  min-width: 700px;
+  width: max-content;
+  min-width: 100%;
   border-collapse: separate;
   border-spacing: 0;
   font-size: 12px;
 }
 .rank-table th {
   text-align: center;
-  padding: 7px 8px;
+  padding: 7px 12px;
   font-size: 11px;
   color: #ffffff;
   background: linear-gradient(135deg, #1565c0, #1976d2);
@@ -476,7 +476,7 @@ html, body {
 .rank-table th:last-child { border-radius: 0 6px 0 0; }
 .rank-table td {
   text-align: center;
-  padding: 5px 8px;
+  padding: 5px 12px;
   border-bottom: 1px solid #e3f2fd;
   color: #2c4a6e;
   white-space: nowrap;
@@ -489,6 +489,9 @@ html, body {
   max-height: 290px;
   overflow: auto;
   position: relative;
+  /* 确保横向滚动 */
+  overflow-x: auto;
+  overflow-y: auto;
 }
 .rank-table-sticky thead {
   position: sticky;
@@ -501,25 +504,28 @@ html, body {
 /* 地区列锁定 - 用于地区发货数量排名表格（排名、大区、地区三列锁定） */
 /* 使用固定宽度避免缩放时错位 */
 .rank-table-sticky-col {
-  table-layout: fixed;
+  table-layout: auto;
 }
 .rank-table-sticky-col th:nth-child(1),
 .rank-table-sticky-col td:nth-child(1) {
   width: 50px;
   min-width: 50px;
-  max-width: 50px;
 }
 .rank-table-sticky-col th:nth-child(2),
 .rank-table-sticky-col td:nth-child(2) {
   width: 60px;
   min-width: 60px;
-  max-width: 60px;
 }
 .rank-table-sticky-col th:nth-child(3),
 .rank-table-sticky-col td:nth-child(3) {
   width: 80px;
   min-width: 80px;
-  max-width: 80px;
+}
+/* 其他列设置最小宽度，防止压缩重叠 */
+.rank-table-sticky-col th:nth-child(n+4),
+.rank-table-sticky-col td:nth-child(n+4) {
+  min-width: 80px;
+  white-space: nowrap;
 }
 
 /* 第1列：排名 - sticky定位 */
@@ -683,11 +689,13 @@ html, body {
     width: 100%;
   }
   .rank-table {
+    width: max-content;
     min-width: 100%;
     font-size: 11px;
   }
   .rank-table th, .rank-table td {
-    padding: 5px 6px;
+    padding: 5px 8px;
+    min-width: 70px;
   }
   /* 产品筛选按钮 */
   .product-filter-bar {
