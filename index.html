@@ -458,7 +458,8 @@ html, body {
 .rank-table {
   width: 100%;
   min-width: 700px;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   font-size: 12px;
 }
 .rank-table th {
@@ -498,7 +499,30 @@ html, body {
 .rank-table-sticky th:last-child { border-radius: 0 6px 0 0; }
 
 /* 地区列锁定 - 用于地区发货数量排名表格（排名、大区、地区三列锁定） */
-/* 第1列：排名 */
+/* 使用固定宽度避免缩放时错位 */
+.rank-table-sticky-col {
+  table-layout: fixed;
+}
+.rank-table-sticky-col th:nth-child(1),
+.rank-table-sticky-col td:nth-child(1) {
+  width: 50px;
+  min-width: 50px;
+  max-width: 50px;
+}
+.rank-table-sticky-col th:nth-child(2),
+.rank-table-sticky-col td:nth-child(2) {
+  width: 60px;
+  min-width: 60px;
+  max-width: 60px;
+}
+.rank-table-sticky-col th:nth-child(3),
+.rank-table-sticky-col td:nth-child(3) {
+  width: 80px;
+  min-width: 80px;
+  max-width: 80px;
+}
+
+/* 第1列：排名 - sticky定位 */
 .rank-table-sticky-col th:nth-child(1),
 .rank-table-sticky-col td:nth-child(1) {
   position: sticky;
@@ -519,11 +543,11 @@ html, body {
   background: #e3f2fd;
 }
 
-/* 第2列：大区 */
+/* 第2列：大区 - sticky定位 */
 .rank-table-sticky-col th:nth-child(2),
 .rank-table-sticky-col td:nth-child(2) {
   position: sticky;
-  left: 45px;
+  left: 50px;
   background: #fff;
   z-index: 5;
   box-shadow: 2px 0 5px rgba(0,0,0,0.1);
@@ -540,11 +564,11 @@ html, body {
   background: #e3f2fd;
 }
 
-/* 第3列：地区 */
+/* 第3列：地区 - sticky定位 */
 .rank-table-sticky-col th:nth-child(3),
 .rank-table-sticky-col td:nth-child(3) {
   position: sticky;
-  left: 90px;
+  left: 110px;
   background: #fff;
   z-index: 4;
   box-shadow: 2px 0 5px rgba(0,0,0,0.1);
