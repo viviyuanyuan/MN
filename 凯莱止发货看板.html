@@ -1,0 +1,1209 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<meta name="dashboard-embed-scale" content="auto">
+<title>抗过敏组凯莱止产品发货看板</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+<style>
+
+/* ===== RESET & BASE ===== */
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Microsoft YaHei','PingFang SC','Helvetica Neue',sans-serif;
+     background:#EEF1F7;color:#2C3E50;min-width:320px;font-size:22px;}
+
+/* ===== HEADER ===== */
+.header{
+  background:rgb(1,112,193);
+  color:#fff;padding:0 40px;
+  display:flex;align-items:center;justify-content:space-between;
+  height:90px;position:relative;overflow:hidden;
+  box-shadow:0 4px 16px rgba(1,112,193,.35);
+}
+.header::before{
+  content:'';position:absolute;right:-60px;top:-40px;
+  width:260px;height:160px;border-radius:50%;
+  background:rgba(245,131,31,.10);
+}
+.header::after{
+  content:'';position:absolute;right:80px;top:10px;
+  width:120px;height:120px;border-radius:50%;
+  background:rgba(255,255,255,.04);
+}
+.header-left{display:flex;align-items:center;gap:16px;z-index:1;}
+.logo-wrap{
+  width:62px;height:62px;border-radius:14px;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.logo-wrap img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 2px 6px rgba(255,255,255,.3));}
+.header-titles{}
+.header-main-title{font-size:38px;font-weight:700;letter-spacing:3px;
+  text-shadow:0 2px 8px rgba(0,0,0,.25);}
+.header-subtitle{font-size:16px;color:rgba(255,255,255,.65);margin-top:3px;letter-spacing:1px;}
+.header-right{text-align:right;z-index:1;background:rgb(1,112,193);}
+.header-meta{font-size:16px;color:rgba(255,255,255,.75);line-height:2;background:rgb(1,112,193);}
+.header-meta strong{color:#FFB347;font-weight:600;}
+.header-meta .meta-dot{display:inline-block;width:6px;height:6px;border-radius:50%;
+  background:#F5831F;margin-right:6px;vertical-align:middle;}
+
+/* ===== NAV ===== */
+.nav{
+  background:#fff;display:flex;gap:0;
+  border-bottom:3px solid #E8ECF4;
+  box-shadow:0 2px 8px rgba(0,0,0,.06);
+  padding-left:30px;
+}
+.nav-btn{
+  padding:14px 38px;font-size:20px;font-weight:600;border:none;cursor:pointer;
+  background:transparent;color:#7A8BA8;transition:all .25s;
+  border-bottom:3px solid transparent;margin-bottom:-3px;
+  display:flex;align-items:center;gap:8px;
+}
+.nav-btn:hover{color:#0068C8;background:rgba(0,104,200,.04);}
+.nav-btn.active{color:#0068C8;border-bottom:3px solid #F5831F;background:#fff;}
+.nav-btn .nav-icon{font-size:22px;}
+
+/* ===== MAIN ===== */
+.main{padding:20px 30px 30px;}
+.page{display:none;}
+.page.active{display:block;}
+
+/* ===== SECTION TITLE ===== */
+.section-title{
+  display:flex;align-items:center;gap:10px;
+  font-size:24px;font-weight:700;color:#0068C8;
+  margin:22px 0 14px;
+}
+.section-title::before{
+  content:'';display:block;width:4px;height:20px;border-radius:2px;
+  background:linear-gradient(180deg,#F5831F,#E06C10);flex-shrink:0;
+}
+
+/* ===== KPI CARDS ===== */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:4px;}
+.kpi-row-5{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:4px;}
+
+.kpi-card{
+  background:#fff;border-radius:14px;padding:18px 20px 16px;
+  box-shadow:0 2px 12px rgba(0,0,0,.06);
+  position:relative;overflow:hidden;border:1px solid #EEF1F7;
+  transition:transform .2s,box-shadow .2s;
+}
+.kpi-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.10);}
+.kpi-card .card-icon{
+  position:absolute;right:16px;top:16px;
+  width:42px;height:42px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;font-size:20px;
+  opacity:.9;
+}
+.kpi-card.type-blue .card-icon{background:rgba(0,104,200,.10);}
+
+.kpi-card.type-orange .card-icon{background:rgba(245,131,31,.12);}
+.kpi-card.type-green .card-icon{background:rgba(39,174,96,.12);}
+.kpi-card.type-red .card-icon{background:rgba(231,76,60,.12);}
+.kpi-card.type-purple .card-icon{background:rgba(142,68,173,.12);}
+.kpi-card.type-teal .card-icon{background:rgba(26,188,156,.12);}
+
+.kpi-card::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:3px;border-radius:0 0 14px 14px;
+}
+.kpi-card.type-blue::after{background:linear-gradient(90deg,#0068C8,#0A85E3);}
+.kpi-card.type-orange::after{background:linear-gradient(90deg,#F5831F,#FFB347);}
+.kpi-card.type-green::after{background:linear-gradient(90deg,#27AE60,#58D68D);}
+.kpi-card.type-red::after{background:linear-gradient(90deg,#E74C3C,#FF6B6B);}
+.kpi-card.type-purple::after{background:linear-gradient(90deg,#8E44AD,#BB8FCE);}
+.kpi-card.type-teal::after{background:linear-gradient(90deg,#1ABC9C,#76D7C4);}
+
+.kpi-label{font-size:18px;color:#8C9AB0;font-weight:500;margin-bottom:8px;}
+.kpi-value{font-size:40px;font-weight:700;color:#0068C8;line-height:1;margin-bottom:8px;}
+.kpi-value .unit{font-size:16px;font-weight:400;color:#8C9AB0;margin-left:3px;}
+.kpi-sub{font-size:16px;color:#8C9AB0;display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.kpi-sub .yoy-up{color:#E74C3C;font-weight:600;}
+.kpi-sub .yoy-down{color:#27AE60;font-weight:600;}
+.kpi-sub .yoy-na{color:#AAB2BF;}
+
+.progress-bar-wrap{margin-top:10px;}
+.progress-bar-bg{background:#EEF1F7;border-radius:4px;height:6px;overflow:hidden;}
+.progress-bar-fill{height:6px;border-radius:4px;transition:width .6s ease;}
+.progress-bar-label{font-size:15px;color:#8C9AB0;margin-top:4px;display:flex;justify-content:space-between;}
+
+.badge{
+  padding:2px 8px;border-radius:20px;font-size:15px;font-weight:600;
+  display:inline-block;letter-spacing:.5px;
+}
+.badge-blue{background:#E0EFFC;color:#0068C8;}
+.badge-orange{background:#FFF3E8;color:#C96B10;}
+.badge-green{background:#E8F8F0;color:#1E8449;}
+.badge-red{background:#FDECEA;color:#C0392B;}
+.badge-gray{background:#F0F3F7;color:#5D6D7E;}
+
+/* ===== CHARTS ===== */
+.chart-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+.chart-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px;}
+
+.chart-box{
+  background:#fff;border-radius:14px;padding:20px 22px;
+  box-shadow:0 2px 12px rgba(0,0,0,.06);border:1px solid #EEF1F7;
+}
+.chart-box h3{
+  font-size:20px;color:#0068C8;font-weight:600;
+  margin-bottom:14px;padding-bottom:12px;
+  border-bottom:1px solid #F0F3F7;
+  display:flex;align-items:center;gap:8px;
+}
+.chart-box h3::before{
+  content:'';display:block;width:3px;height:14px;border-radius:2px;
+  background:linear-gradient(180deg,#F5831F,#0068C8);flex-shrink:0;
+}
+.chart-box canvas{max-height:340px;}
+
+/* ===== TABLE ===== */
+.table-box{
+  background:#fff;border-radius:14px;padding:20px 22px;
+  box-shadow:0 2px 12px rgba(0,0,0,.06);border:1px solid #EEF1F7;
+  margin-top:16px;
+}
+.table-box h3{
+  font-size:24px;color:#0068C8;font-weight:600;
+  margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid #F0F3F7;
+  display:flex;align-items:center;gap:8px;
+}
+.table-box h3::before{
+  content:'';display:block;width:3px;height:14px;border-radius:2px;
+  background:linear-gradient(180deg,#F5831F,#0068C8);
+}
+table{width:100%;border-collapse:collapse;font-size:19px;}
+thead tr{background:#F7F9FC;}
+th{
+  color:#4A5568;font-weight:600;padding:14px 13px;
+  text-align:center;border-bottom:2px solid #E8ECF4;
+  font-size:19px;letter-spacing:.4px;
+}
+td{padding:14px 13px;text-align:center;border-bottom:1px solid #F0F3F7;color:#2C3E50;font-size:19px;}
+tbody tr:nth-child(even) td{background:#FAFBFD;}
+tbody tr:hover td{background:#F0F5FF;}
+.text-left{text-align:left!important;}
+.text-right{text-align:right!important;}
+
+/* 表格内进度条 */
+.tbl-progress{width:100%;min-width:90px;}
+.tbl-progress-bar{background:#EEF1F7;border-radius:10px;height:28px;overflow:hidden;position:relative;}
+.tbl-progress-fill{height:100%;border-radius:10px;transition:width .6s ease;min-width:2px;display:flex;align-items:center;justify-content:center;}
+.tbl-progress-text{font-size:14px;color:#fff;font-weight:700;text-shadow:0 1px 3px rgba(0,0,0,.35);white-space:nowrap;padding:0 8px;}
+.tbl-progress-pct{font-size:14px;font-weight:600;margin-top:4px;text-align:center;}
+
+/* ===== AREA TAG COLORS ===== */
+.area-tag{
+  display:inline-block;padding:2px 10px;border-radius:4px;
+  font-size:15px;font-weight:600;
+}
+.area-huadong{background:#E0EFFC;color:#0068C8;}
+.area-huabei{background:#FFF3E8;color:#C96B10;}
+.area-huanan{background:#E8F8F0;color:#1E8449;}
+.area-huaxi{background:#F5EEF8;color:#7D3C98;}
+.area-xinyx{background:#FEF9E7;color:#B7950B;}
+.area-default{background:#F0F3F7;color:#5D6D7E;}
+
+/* ===== TABLE COLUMN WIDTHS (desktop) ===== */
+.tw-dept{min-width:80px;}
+.tw-empty{min-width:10px;}
+.tw-num{min-width:100px;}
+.tw-badge{min-width:80px;}
+.tw-gap{min-width:100px;}
+.tw-prog{min-width:140px;}
+.tw-rank{min-width:50px;}
+.tw-region{min-width:90px;}
+.tw-owner{min-width:80px;}
+.tw-channel{min-width:60px;}
+
+/* ===== FOOTER ===== */
+.footer{
+  text-align:center;padding:14px 30px;
+  color:#AAB2BF;font-size:15px;
+  border-top:1px solid #E8ECF4;
+  background:#fff;margin-top:10px;
+}
+.footer span{color:#F5831F;font-weight:500;}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar{width:6px;height:6px;}
+::-webkit-scrollbar-track{background:#F0F3F7;}
+::-webkit-scrollbar-thumb{background:#BDC8D9;border-radius:3px;}
+::-webkit-scrollbar-thumb:hover{background:#8C9AB0;}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:1200px){
+  .kpi-row{grid-template-columns:repeat(2,1fr)!important;}
+  .kpi-row-5{grid-template-columns:repeat(2,1fr)!important;}
+  .chart-row,.chart-row-3{grid-template-columns:1fr!important;}
+  .chart-row-3 .chart-box:last-child{grid-column:auto;}
+}
+
+@media(max-width:768px){
+  body{font-size:13px;}
+  .header{flex-direction:row;height:auto;padding:10px 14px;gap:8px;align-items:center;}
+  .header-left{flex-shrink:0;}
+  .header-main-title{font-size:18px;letter-spacing:1px;}
+  .header-subtitle{font-size:10px;}
+  .logo-wrap{width:40px;height:40px;border-radius:10px;}
+  .logo-wrap svg{width:24px;height:24px;}
+  .header-right{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;white-space:nowrap;}
+  .header-meta{line-height:1.6;font-size:11px;text-align:right;}
+  .nav{padding-left:0;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  .nav-btn{padding:10px 18px;font-size:13px;white-space:nowrap;}
+  .main{padding:12px 10px 20px;}
+  .kpi-row,.kpi-row-5{grid-template-columns:repeat(4,1fr)!important;gap:6px!important;}
+  .kpi-card{padding:10px 8px 8px;border-radius:10px;}
+  .kpi-label{font-size:10px;margin-bottom:3px;line-height:1.2;white-space:nowrap;}
+  .kpi-value{font-size:18px;margin-bottom:3px;line-height:1;}
+  .kpi-value .unit{font-size:9px;}
+  .kpi-sub{font-size:9px;gap:2px;line-height:1.2;}
+  .kpi-card .card-icon{width:22px;height:22px;font-size:11px;right:4px;top:4px;border-radius:5px;}
+  .progress-bar-wrap{margin-top:4px;}
+  .progress-bar-bg{height:4px;}
+  .progress-bar-label{font-size:8px;margin-top:2px;}
+  .badge{font-size:8px;padding:1px 4px;border-radius:8px;}
+  .chart-row,.chart-row-3{grid-template-columns:1fr!important;gap:10px!important;}
+  .chart-box{padding:14px 12px;border-radius:10px;}
+  .chart-box h3{font-size:13px;margin-bottom:10px;padding-bottom:8px;}
+  .chart-box h3::before{height:10px;width:2px;}
+  .chart-box canvas{max-height:260px;}
+  .section-title{font-size:14px;margin:16px 0 10px;}
+  .table-box{padding:14px 10px;border-radius:10px;margin-top:12px;}
+  .table-box h3{font-size:13px;}
+  table{font-size:12px;}
+  th,td{padding:7px 6px;font-size:11px;white-space:nowrap;}
+  .badge{font-size:10px;padding:1px 6px;}
+  .area-tag{font-size:10px;padding:1px 6px;}
+  .tbl-progress-bar{height:20px;}
+  .tbl-progress-text{font-size:10px;}
+  .footer{font-size:10px;padding:10px 20px;}
+}
+
+@media(max-width:480px){
+  .header-main-title{font-size:15px;}
+  .header-subtitle{display:none;}
+  .nav-btn{padding:8px 14px;font-size:12px;}
+  .nav-btn .nav-icon{display:none;}
+  .kpi-value{font-size:20px;}
+  .kpi-label{font-size:11px;}
+  .chart-box canvas{max-height:220px;}
+}
+
+/* ===== MOBILE TABLE WRAPPER ===== */
+.table-scroll-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -2px;}
+
+/* ===== MOBILE META (under title) ===== */
+.mobile-meta{display:none;background:rgb(1,112,193);}
+.desktop-meta{}
+
+@media(max-width:768px){
+  body{font-size:13px;}
+  /* HEADER: 同桌面端布局，右侧两行信息 */
+  .header{height:auto;padding:10px 12px;gap:10px;align-items:center;}
+  .header-left{flex:1 1 auto;min-width:0;}
+  .header-main-title{font-size:15px;letter-spacing:0.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3;}
+  .header-subtitle{display:none;}
+  .logo-wrap{width:32px;height:32px;border-radius:8px;}
+  .logo-wrap svg{width:20px;height:20px;}
+  /* mobile meta 在右侧，两行显示 */
+  .mobile-meta{display:flex!important;flex-direction:column;align-items:flex-end;gap:3px;font-size:10px;color:rgba(255,255,255,.7);line-height:1.3;white-space:nowrap;}
+  .mobile-meta .meta-dot{width:4px;height:4px;margin-right:4px;}
+  .mobile-meta strong{color:#FFB347;font-weight:600;font-size:10px;}
+  .desktop-meta{display:none!important;}
+  .header-right{display:none;}
+
+  /* NAV */
+  .nav{padding-left:0;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  .nav-btn{padding:10px 18px;font-size:13px;white-space:nowrap;}
+
+  /* MAIN */
+  .main{padding:10px 6px 16px;}
+
+  /* KPI CARDS: 精简紧凑，2列 */
+  .kpi-row,.kpi-row-5{grid-template-columns:repeat(2,1fr)!important;gap:6px!important;}
+  .kpi-card{padding:8px 7px 6px;border-radius:8px;}
+  .kpi-card .card-icon{display:none!important;}
+  .kpi-card::after{height:2px;}
+  .kpi-label{font-size:10px;margin-bottom:2px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .kpi-value{font-size:20px;margin-bottom:2px;line-height:1;}
+  .kpi-value .unit{font-size:9px;}
+  .kpi-sub{font-size:8px;gap:2px;line-height:1.2;}
+  .kpi-sub .yoy-up,.kpi-sub .yoy-down{font-size:9px;}
+  .kpi-sub .yoy-na{display:none;}
+  .progress-bar-wrap{display:none!important;}
+  .badge{font-size:8px;padding:1px 4px;border-radius:8px;}
+
+  /* SECTION */
+  .section-title{font-size:13px;margin:12px 0 8px;}
+
+  /* CHARTS */
+  .chart-row,.chart-row-3{grid-template-columns:1fr!important;gap:8px!important;}
+  .chart-box{padding:10px 8px;border-radius:8px;}
+  .chart-box h3{font-size:12px;margin-bottom:6px;padding-bottom:6px;}
+  .chart-box h3::before{height:10px;width:2px;}
+  .chart-box canvas{max-height:220px;}
+
+  /* TABLES: 紧凑化，减小 padding 让更多列可见 */
+  .table-box{padding:10px 4px;border-radius:8px;margin-top:10px;}
+  .table-box h3{font-size:12px;margin-bottom:8px;padding-bottom:6px;}
+  .table-scroll-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -4px;}
+  table{font-size:11px;}
+  thead tr{background:#F7F9FC;}
+  th{padding:5px 3px;font-size:9px;color:#5D6D7E;white-space:nowrap;border-bottom:1px solid #E8ECF4;letter-spacing:0;}
+  td{padding:4px 3px;font-size:10px;white-space:nowrap;border-bottom:1px solid #F0F3F7;line-height:1.3;}
+  tbody tr:nth-child(even) td{background:#FAFBFD;}
+  .tbl-progress-bar{height:14px;min-width:40px;}
+  .tbl-progress-text{font-size:8px;padding:0 2px;}
+  .badge{font-size:8px;padding:1px 4px;border-radius:6px;}
+  .area-tag{font-size:8px;padding:1px 4px;}
+  /* 手机端列宽：大幅缩小 min-width */
+  .tw-dept{min-width:55px;}
+  .tw-empty{display:none!important;}
+  .tw-num{min-width:60px;}
+  .tw-badge{min-width:50px;}
+  .tw-gap{min-width:55px;}
+  .tw-prog{min-width:70px;}
+  .tw-rank{min-width:28px;}
+  .tw-region{min-width:55px;}
+  .tw-owner{min-width:42px;}
+  .tw-channel{min-width:36px;}
+
+  /* FOOTER */
+  .footer{font-size:9px;padding:8px 16px;}
+}
+
+@media(max-width:480px){
+  .header-main-title{font-size:14px;}
+  .nav-btn{padding:8px 14px;font-size:12px;}
+  .nav-btn .nav-icon{display:none;}
+  .kpi-value{font-size:18px;}
+  .chart-box canvas{max-height:200px;}
+}
+
+</style>
+</head>
+<body>
+
+
+<div class="header">
+  <div class="header-left">
+    <div class="logo-wrap">
+      <img src="data:image/png;base64,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" alt="logo">
+    </div>
+    <div class="header-titles">
+      <div class="header-main-title">抗过敏组凯莱止产品发货看板</div>
+      <div class="header-subtitle">ANTI-ALLERGY GROUP · KAILEZHI PRODUCT SHIPMENT DASHBOARD</div>
+    </div>
+  </div>
+  <div class="header-meta mobile-meta">
+    <div>截止日期 <strong id="dataDateMobile"></strong></div>
+    <div>统计单位 <strong>万元/万盒</strong></div>
+  </div>
+  <div class="header-right">
+    <div class="header-meta desktop-meta">
+      <div>数据截止日期：<strong id="dataDate"></strong></div>
+      <div>统计单位：<strong>万元 / 万盒</strong></div>
+    </div>
+  </div>
+</div>
+
+
+
+<div class="nav">
+  <button class="nav-btn active" onclick="switchPage('overview')">
+    <span class="nav-icon">▦</span> 总览
+  </button>
+  <button class="nav-btn" onclick="switchPage('hospital')">
+    <span class="nav-icon">＋</span> 医院销售部
+  </button>
+  <button class="nav-btn" onclick="switchPage('marketing')">
+    <span class="nav-icon">◈</span> 新营销部
+  </button>
+</div>
+
+
+<div class="main">
+  <div id="page-overview" class="page active"></div>
+  <div id="page-hospital" class="page"></div>
+  <div id="page-marketing" class="page"></div>
+</div>
+
+<div class="footer">
+  抗过敏事业部 · <span>凯莱止产品发货数据分析看板</span> · 数据仅供内部参考
+</div>
+
+<script>
+window.__DASHBOARD_CTRL_URL = '';
+const D = {"latestDate": "2026-04-29", "latestMonth": 4, "latestYear": 2026, "latestMMDD": "04-29", "monthly": [{"year": 2025, "month": 1, "label": "2025-01", "qty": 67.2, "amt": 2352.67}, {"year": 2025, "month": 2, "label": "2025-02", "qty": 29.93, "amt": 1046.71}, {"year": 2025, "month": 3, "label": "2025-03", "qty": 49.26, "amt": 1717.34}, {"year": 2025, "month": 4, "label": "2025-04", "qty": 60.9, "amt": 2107.5}, {"year": 2025, "month": 5, "label": "2025-05", "qty": 52.3, "amt": 1818.77}, {"year": 2025, "month": 6, "label": "2025-06", "qty": 72.11, "amt": 2509.51}, {"year": 2025, "month": 7, "label": "2025-07", "qty": 44.09, "amt": 1536.01}, {"year": 2025, "month": 8, "label": "2025-08", "qty": 35.85, "amt": 1237.33}, {"year": 2025, "month": 9, "label": "2025-09", "qty": 55.37, "amt": 1912.49}, {"year": 2025, "month": 10, "label": "2025-10", "qty": 39.09, "amt": 1353.43}, {"year": 2025, "month": 11, "label": "2025-11", "qty": 43.17, "amt": 1485.84}, {"year": 2025, "month": 12, "label": "2025-12", "qty": 44.5, "amt": 1529.45}, {"year": 2026, "month": 1, "label": "2026-01", "qty": 81.91, "amt": 2828.05}, {"year": 2026, "month": 2, "label": "2026-02", "qty": 22.2, "amt": 765.32}, {"year": 2026, "month": 3, "label": "2026-03", "qty": 38.54, "amt": 1339.86}, {"year": 2026, "month": 4, "label": "2026-04", "qty": 59.93, "amt": 2065.71}], "deptMonthly": [{"dept": "全部", "year": 2025, "month": 1, "label": "2025-01", "qty": 67.2, "amt": 2352.67}, {"dept": "全部", "year": 2025, "month": 2, "label": "2025-02", "qty": 29.93, "amt": 1046.71}, {"dept": "全部", "year": 2025, "month": 3, "label": "2025-03", "qty": 49.26, "amt": 1717.34}, {"dept": "全部", "year": 2025, "month": 4, "label": "2025-04", "qty": 60.9, "amt": 2107.5}, {"dept": "全部", "year": 2025, "month": 5, "label": "2025-05", "qty": 52.3, "amt": 1818.77}, {"dept": "全部", "year": 2025, "month": 6, "label": "2025-06", "qty": 72.11, "amt": 2509.51}, {"dept": "全部", "year": 2025, "month": 7, "label": "2025-07", "qty": 44.09, "amt": 1536.01}, {"dept": "全部", "year": 2025, "month": 8, "label": "2025-08", "qty": 35.85, "amt": 1237.33}, {"dept": "全部", "year": 2025, "month": 9, "label": "2025-09", "qty": 55.37, "amt": 1912.49}, {"dept": "全部", "year": 2025, "month": 10, "label": "2025-10", "qty": 39.09, "amt": 1353.43}, {"dept": "全部", "year": 2025, "month": 11, "label": "2025-11", "qty": 43.17, "amt": 1485.84}, {"dept": "全部", "year": 2025, "month": 12, "label": "2025-12", "qty": 44.5, "amt": 1529.45}, {"dept": "全部", "year": 2026, "month": 1, "label": "2026-01", "qty": 81.91, "amt": 2828.05}, {"dept": "全部", "year": 2026, "month": 2, "label": "2026-02", "qty": 22.2, "amt": 765.32}, {"dept": "全部", "year": 2026, "month": 3, "label": "2026-03", "qty": 38.54, "amt": 1339.86}, {"dept": "全部", "year": 2026, "month": 4, "label": "2026-04", "qty": 59.93, "amt": 2065.71}, {"dept": "医院销售部", "year": 2025, "month": 1, "label": "2025-01", "qty": 60.34, "amt": 2102.11}, {"dept": "医院销售部", "year": 2025, "month": 2, "label": "2025-02", "qty": 25.8, "amt": 899.42}, {"dept": "医院销售部", "year": 2025, "month": 3, "label": "2025-03", "qty": 40.74, "amt": 1412.99}, {"dept": "医院销售部", "year": 2025, "month": 4, "label": "2025-04", "qty": 54.19, "amt": 1868.0}, {"dept": "医院销售部", "year": 2025, "month": 5, "label": "2025-05", "qty": 42.29, "amt": 1461.79}, {"dept": "医院销售部", "year": 2025, "month": 6, "label": "2025-06", "qty": 62.13, "amt": 2153.7}, {"dept": "医院销售部", "year": 2025, "month": 7, "label": "2025-07", "qty": 34.26, "amt": 1185.94}, {"dept": "医院销售部", "year": 2025, "month": 8, "label": "2025-08", "qty": 32.77, "amt": 1126.83}, {"dept": "医院销售部", "year": 2025, "month": 9, "label": "2025-09", "qty": 50.35, "amt": 1732.24}, {"dept": "医院销售部", "year": 2025, "month": 10, "label": "2025-10", "qty": 33.0, "amt": 1135.97}, {"dept": "医院销售部", "year": 2025, "month": 11, "label": "2025-11", "qty": 33.23, "amt": 1134.51}, {"dept": "医院销售部", "year": 2025, "month": 12, "label": "2025-12", "qty": 39.2, "amt": 1340.96}, {"dept": "医院销售部", "year": 2026, "month": 1, "label": "2026-01", "qty": 72.16, "amt": 2476.85}, {"dept": "医院销售部", "year": 2026, "month": 2, "label": "2026-02", "qty": 17.62, "amt": 601.12}, {"dept": "医院销售部", "year": 2026, "month": 3, "label": "2026-03", "qty": 26.96, "amt": 922.32}, {"dept": "医院销售部", "year": 2026, "month": 4, "label": "2026-04", "qty": 52.38, "amt": 1794.68}, {"dept": "新营销部", "year": 2025, "month": 1, "label": "2025-01", "qty": 6.87, "amt": 250.57}, {"dept": "新营销部", "year": 2025, "month": 2, "label": "2025-02", "qty": 4.12, "amt": 147.29}, {"dept": "新营销部", "year": 2025, "month": 3, "label": "2025-03", "qty": 8.51, "amt": 304.35}, {"dept": "新营销部", "year": 2025, "month": 4, "label": "2025-04", "qty": 6.71, "amt": 239.49}, {"dept": "新营销部", "year": 2025, "month": 5, "label": "2025-05", "qty": 10.01, "amt": 356.97}, {"dept": "新营销部", "year": 2025, "month": 6, "label": "2025-06", "qty": 9.98, "amt": 355.82}, {"dept": "新营销部", "year": 2025, "month": 7, "label": "2025-07", "qty": 9.82, "amt": 350.07}, {"dept": "新营销部", "year": 2025, "month": 8, "label": "2025-08", "qty": 3.08, "amt": 110.49}, {"dept": "新营销部", "year": 2025, "month": 9, "label": "2025-09", "qty": 5.03, "amt": 180.25}, {"dept": "新营销部", "year": 2025, "month": 10, "label": "2025-10", "qty": 6.09, "amt": 217.46}, {"dept": "新营销部", "year": 2025, "month": 11, "label": "2025-11", "qty": 9.94, "amt": 351.33}, {"dept": "新营销部", "year": 2025, "month": 12, "label": "2025-12", "qty": 5.3, "amt": 188.49}, {"dept": "新营销部", "year": 2026, "month": 1, "label": "2026-01", "qty": 9.75, "amt": 351.21}, {"dept": "新营销部", "year": 2026, "month": 2, "label": "2026-02", "qty": 4.58, "amt": 164.2}, {"dept": "新营销部", "year": 2026, "month": 3, "label": "2026-03", "qty": 11.59, "amt": 417.54}, {"dept": "新营销部", "year": 2026, "month": 4, "label": "2026-04", "qty": 7.55, "amt": 271.03}], "areaMonthly": [{"area": "华东", "dept": "医院销售部", "year": 2025, "month": 1, "label": "2025-01", "qty": 9.22, "amt": 322.22}, {"area": "华东", "dept": "医院销售部", "year": 2025, "month": 2, "label": "2025-02", "qty": 3.23, "amt": 114.63}, {"area": "华东", "dept": "医院销售部", "year": 2025, "month": 3, "label": "2025-03", "qty": 6.56, "amt": 227.84}, {"area": "华东", "dept": "医院销售部", "year": 2025, "month": 4, "label": "2025-04", "qty": 6.41, "amt": 221.65}, {"area": "华东", "dept": "医院销售部", "year": 2025, "month": 5, "label": "2025-05", "qty": 6.19, "amt": 216.56}, {"area": "华东", "dept": "医院销售部", "year": 2025, "month": 6, "label": "2025-06", "qty": 6.67, "amt": 232.18}, {"area": "华东", "dept": "医院销售部", "year": 2025, "month": 7, "label": "2025-07", "qty": 7.99, "amt": 276.55}, {"area": "华东", "dept": "医院销售部", "year": 2025, "month": 8, "label": "2025-08", "qty": 4.5, "amt": 156.63}, {"area": "华东", "dept": "医院销售部", "year": 2025, "month": 9, "label": "2025-09", "qty": 6.94, "amt": 238.35}, {"area": "华东", "dept": "医院销售部", "year": 2025, "month": 10, "label": "2025-10", "qty": 5.7, "amt": 198.57}, {"area": "华东", "dept": "医院销售部", "year": 2025, "month": 11, "label": "2025-11", "qty": 4.24, "amt": 145.8}, {"area": "华东", "dept": "医院销售部", "year": 2025, "month": 12, "label": "2025-12", "qty": 6.71, "amt": 231.81}, {"area": "华东", "dept": "医院销售部", "year": 2026, "month": 1, "label": "2026-01", "qty": 9.07, "amt": 313.22}, {"area": "华东", "dept": "医院销售部", "year": 2026, "month": 2, "label": "2026-02", "qty": 0.38, "amt": 13.08}, {"area": "华东", "dept": "医院销售部", "year": 2026, "month": 3, "label": "2026-03", "qty": 4.01, "amt": 138.12}, {"area": "华东", "dept": "医院销售部", "year": 2026, "month": 4, "label": "2026-04", "qty": 6.97, "amt": 240.77}, {"area": "华北", "dept": "医院销售部", "year": 2025, "month": 1, "label": "2025-01", "qty": 10.46, "amt": 356.36}, {"area": "华北", "dept": "医院销售部", "year": 2025, "month": 2, "label": "2025-02", "qty": 5.74, "amt": 196.19}, {"area": "华北", "dept": "医院销售部", "year": 2025, "month": 3, "label": "2025-03", "qty": 7.58, "amt": 257.41}, {"area": "华北", "dept": "医院销售部", "year": 2025, "month": 4, "label": "2025-04", "qty": 10.31, "amt": 349.34}, {"area": "华北", "dept": "医院销售部", "year": 2025, "month": 5, "label": "2025-05", "qty": 7.09, "amt": 238.96}, {"area": "华北", "dept": "医院销售部", "year": 2025, "month": 6, "label": "2025-06", "qty": 10.28, "amt": 345.06}, {"area": "华北", "dept": "医院销售部", "year": 2025, "month": 7, "label": "2025-07", "qty": 4.38, "amt": 147.5}, {"area": "华北", "dept": "医院销售部", "year": 2025, "month": 8, "label": "2025-08", "qty": 5.92, "amt": 198.0}, {"area": "华北", "dept": "医院销售部", "year": 2025, "month": 9, "label": "2025-09", "qty": 9.06, "amt": 304.96}, {"area": "华北", "dept": "医院销售部", "year": 2025, "month": 10, "label": "2025-10", "qty": 6.45, "amt": 216.58}, {"area": "华北", "dept": "医院销售部", "year": 2025, "month": 11, "label": "2025-11", "qty": 4.95, "amt": 165.51}, {"area": "华北", "dept": "医院销售部", "year": 2025, "month": 12, "label": "2025-12", "qty": 6.45, "amt": 216.02}, {"area": "华北", "dept": "医院销售部", "year": 2026, "month": 1, "label": "2026-01", "qty": 11.12, "amt": 373.77}, {"area": "华北", "dept": "医院销售部", "year": 2026, "month": 2, "label": "2026-02", "qty": 4.35, "amt": 145.41}, {"area": "华北", "dept": "医院销售部", "year": 2026, "month": 3, "label": "2026-03", "qty": 5.39, "amt": 181.28}, {"area": "华北", "dept": "医院销售部", "year": 2026, "month": 4, "label": "2026-04", "qty": 9.29, "amt": 311.67}, {"area": "华南", "dept": "医院销售部", "year": 2025, "month": 1, "label": "2025-01", "qty": 27.26, "amt": 956.48}, {"area": "华南", "dept": "医院销售部", "year": 2025, "month": 2, "label": "2025-02", "qty": 8.7, "amt": 304.61}, {"area": "华南", "dept": "医院销售部", "year": 2025, "month": 3, "label": "2025-03", "qty": 15.67, "amt": 546.6}, {"area": "华南", "dept": "医院销售部", "year": 2025, "month": 4, "label": "2025-04", "qty": 21.79, "amt": 754.14}, {"area": "华南", "dept": "医院销售部", "year": 2025, "month": 5, "label": "2025-05", "qty": 19.16, "amt": 666.35}, {"area": "华南", "dept": "医院销售部", "year": 2025, "month": 6, "label": "2025-06", "qty": 31.01, "amt": 1085.32}, {"area": "华南", "dept": "医院销售部", "year": 2025, "month": 7, "label": "2025-07", "qty": 13.46, "amt": 475.02}, {"area": "华南", "dept": "医院销售部", "year": 2025, "month": 8, "label": "2025-08", "qty": 13.46, "amt": 468.54}, {"area": "华南", "dept": "医院销售部", "year": 2025, "month": 9, "label": "2025-09", "qty": 19.61, "amt": 683.21}, {"area": "华南", "dept": "医院销售部", "year": 2025, "month": 10, "label": "2025-10", "qty": 11.1, "amt": 387.4}, {"area": "华南", "dept": "医院销售部", "year": 2025, "month": 11, "label": "2025-11", "qty": 14.92, "amt": 509.53}, {"area": "华南", "dept": "医院销售部", "year": 2025, "month": 12, "label": "2025-12", "qty": 18.52, "amt": 638.43}, {"area": "华南", "dept": "医院销售部", "year": 2026, "month": 1, "label": "2026-01", "qty": 32.42, "amt": 1119.52}, {"area": "华南", "dept": "医院销售部", "year": 2026, "month": 2, "label": "2026-02", "qty": 8.1, "amt": 277.77}, {"area": "华南", "dept": "医院销售部", "year": 2026, "month": 3, "label": "2026-03", "qty": 6.75, "amt": 232.05}, {"area": "华南", "dept": "医院销售部", "year": 2026, "month": 4, "label": "2026-04", "qty": 20.51, "amt": 705.73}, {"area": "华西", "dept": "医院销售部", "year": 2025, "month": 1, "label": "2025-01", "qty": 13.39, "amt": 467.04}, {"area": "华西", "dept": "医院销售部", "year": 2025, "month": 2, "label": "2025-02", "qty": 8.14, "amt": 283.99}, {"area": "华西", "dept": "医院销售部", "year": 2025, "month": 3, "label": "2025-03", "qty": 10.93, "amt": 381.14}, {"area": "华西", "dept": "医院销售部", "year": 2025, "month": 4, "label": "2025-04", "qty": 15.68, "amt": 542.88}, {"area": "华西", "dept": "医院销售部", "year": 2025, "month": 5, "label": "2025-05", "qty": 9.85, "amt": 339.93}, {"area": "华西", "dept": "医院销售部", "year": 2025, "month": 6, "label": "2025-06", "qty": 14.17, "amt": 491.13}, {"area": "华西", "dept": "医院销售部", "year": 2025, "month": 7, "label": "2025-07", "qty": 8.44, "amt": 286.88}, {"area": "华西", "dept": "医院销售部", "year": 2025, "month": 8, "label": "2025-08", "qty": 8.89, "amt": 303.67}, {"area": "华西", "dept": "医院销售部", "year": 2025, "month": 9, "label": "2025-09", "qty": 14.74, "amt": 505.72}, {"area": "华西", "dept": "医院销售部", "year": 2025, "month": 10, "label": "2025-10", "qty": 9.75, "amt": 333.42}, {"area": "华西", "dept": "医院销售部", "year": 2025, "month": 11, "label": "2025-11", "qty": 9.12, "amt": 313.67}, {"area": "华西", "dept": "医院销售部", "year": 2025, "month": 12, "label": "2025-12", "qty": 7.51, "amt": 254.7}, {"area": "华西", "dept": "医院销售部", "year": 2026, "month": 1, "label": "2026-01", "qty": 19.54, "amt": 670.34}, {"area": "华西", "dept": "医院销售部", "year": 2026, "month": 2, "label": "2026-02", "qty": 4.8, "amt": 164.87}, {"area": "华西", "dept": "医院销售部", "year": 2026, "month": 3, "label": "2026-03", "qty": 10.8, "amt": 370.87}, {"area": "华西", "dept": "医院销售部", "year": 2026, "month": 4, "label": "2026-04", "qty": 15.6, "amt": 536.51}, {"area": "新营销部", "dept": "新营销部", "year": 2025, "month": 1, "label": "2025-01", "qty": 6.87, "amt": 250.57}, {"area": "新营销部", "dept": "新营销部", "year": 2025, "month": 2, "label": "2025-02", "qty": 4.12, "amt": 147.29}, {"area": "新营销部", "dept": "新营销部", "year": 2025, "month": 3, "label": "2025-03", "qty": 8.51, "amt": 304.35}, {"area": "新营销部", "dept": "新营销部", "year": 2025, "month": 4, "label": "2025-04", "qty": 6.71, "amt": 239.49}, {"area": "新营销部", "dept": "新营销部", "year": 2025, "month": 5, "label": "2025-05", "qty": 10.01, "amt": 356.97}, {"area": "新营销部", "dept": "新营销部", "year": 2025, "month": 6, "label": "2025-06", "qty": 9.98, "amt": 355.82}, {"area": "新营销部", "dept": "新营销部", "year": 2025, "month": 7, "label": "2025-07", "qty": 9.82, "amt": 350.07}, {"area": "新营销部", "dept": "新营销部", "year": 2025, "month": 8, "label": "2025-08", "qty": 3.08, "amt": 110.49}, {"area": "新营销部", "dept": "新营销部", "year": 2025, "month": 9, "label": "2025-09", "qty": 5.03, "amt": 180.25}, {"area": "新营销部", "dept": "新营销部", "year": 2025, "month": 10, "label": "2025-10", "qty": 6.09, "amt": 217.46}, {"area": "新营销部", "dept": "新营销部", "year": 2025, "month": 11, "label": "2025-11", "qty": 9.94, "amt": 351.33}, {"area": "新营销部", "dept": "新营销部", "year": 2025, "month": 12, "label": "2025-12", "qty": 5.3, "amt": 188.49}, {"area": "新营销部", "dept": "新营销部", "year": 2026, "month": 1, "label": "2026-01", "qty": 9.75, "amt": 351.21}, {"area": "新营销部", "dept": "新营销部", "year": 2026, "month": 2, "label": "2026-02", "qty": 4.58, "amt": 164.2}, {"area": "新营销部", "dept": "新营销部", "year": 2026, "month": 3, "label": "2026-03", "qty": 11.59, "amt": 417.54}, {"area": "新营销部", "dept": "新营销部", "year": 2026, "month": 4, "label": "2026-04", "qty": 7.55, "amt": 271.03}], "target": [{"dept": "全部", "targetQty": 685.0, "targetAmt": 23710.0}, {"dept": "医院销售部", "targetQty": 545.0, "targetAmt": 18530.0}, {"dept": "新营销部", "targetQty": 140.0, "targetAmt": 5180.0}], "areaTarget": [{"area": "B端", "dept": "新营销部", "targetQty": 63.0, "targetAmt": 2331.0}, {"area": "C端", "dept": "新营销部", "targetQty": 11.0, "targetAmt": 407.0}, {"area": "KA", "dept": "新营销部", "targetQty": 66.0, "targetAmt": 2442.0}, {"area": "华东", "dept": "医院销售部", "targetQty": 82.6, "targetAmt": 2808.4}, {"area": "华北", "dept": "医院销售部", "targetQty": 88.1, "targetAmt": 2995.4}, {"area": "华南", "dept": "医院销售部", "targetQty": 227.3, "targetAmt": 7728.2}, {"area": "华西", "dept": "医院销售部", "targetQty": 147.0, "targetAmt": 4998.0}], "regionTarget": [{"region": "B端-壹药网", "dept": "新营销部", "area": "B端", "owner": "庞大智", "targetQty": 45.0, "targetAmt": 1665.0}, {"region": "B端-药师帮", "dept": "新营销部", "area": "B端", "owner": "庞大智", "targetQty": 18.0, "targetAmt": 666.0}, {"region": "C端-京东", "dept": "新营销部", "area": "C端", "owner": "贠嘉宏", "targetQty": 7.0, "targetAmt": 259.0}, {"region": "C端-其他", "dept": "新营销部", "area": "C端", "owner": "贠嘉宏", "targetQty": 1.0, "targetAmt": 37.0}, {"region": "C端-阿里", "dept": "新营销部", "area": "C端", "owner": "贠嘉宏", "targetQty": 3.0, "targetAmt": 111.0}, {"region": "KA", "dept": "新营销部", "area": "KA", "owner": "张宇航", "targetQty": 66.0, "targetAmt": 2442.0}, {"region": "上海", "dept": "医院销售部", "area": "华东", "owner": "高文龙", "targetQty": 1.6, "targetAmt": 54.4}, {"region": "云南", "dept": "医院销售部", "area": "华西", "owner": "周辉", "targetQty": 6.2, "targetAmt": 210.8}, {"region": "内蒙古", "dept": "医院销售部", "area": "华北", "owner": "卿毅", "targetQty": 2.6, "targetAmt": 88.4}, {"region": "北京", "dept": "医院销售部", "area": "华北", "owner": "卢俊", "targetQty": 5.5, "targetAmt": 187.0}, {"region": "吉林", "dept": "医院销售部", "area": "华北", "owner": "卿毅", "targetQty": 7.5, "targetAmt": 255.0}, {"region": "四川", "dept": "医院销售部", "area": "华西", "owner": "薛文", "targetQty": 19.0, "targetAmt": 646.0}, {"region": "天津", "dept": "医院销售部", "area": "华北", "owner": "卢俊", "targetQty": 0.35, "targetAmt": 11.9}, {"region": "宁夏", "dept": "医院销售部", "area": "华西", "owner": "耿福林", "targetQty": 0.5, "targetAmt": 17.0}, {"region": "安徽", "dept": "医院销售部", "area": "华东", "owner": "汪腾飞", "targetQty": 4.0, "targetAmt": 136.0}, {"region": "山东", "dept": "医院销售部", "area": "华北", "owner": "卿毅", "targetQty": 28.0, "targetAmt": 952.0}, {"region": "山西", "dept": "医院销售部", "area": "华北", "owner": "卿毅", "targetQty": 17.15, "targetAmt": 583.1}, {"region": "广东", "dept": "医院销售部", "area": "华南", "owner": "许占海", "targetQty": 156.0, "targetAmt": 5304.0}, {"region": "广西", "dept": "医院销售部", "area": "华南", "owner": "罗险峰", "targetQty": 30.0, "targetAmt": 1020.0}, {"region": "新疆", "dept": "医院销售部", "area": "华西", "owner": "耿福林", "targetQty": 0.2, "targetAmt": 6.8}, {"region": "江苏", "dept": "医院销售部", "area": "华东", "owner": "杨海波", "targetQty": 34.0, "targetAmt": 1156.0}, {"region": "江西", "dept": "医院销售部", "area": "华南", "owner": "罗险峰", "targetQty": 3.0, "targetAmt": 102.0}, {"region": "河北", "dept": "医院销售部", "area": "华北", "owner": "卢俊", "targetQty": 5.0, "targetAmt": 170.0}, {"region": "河南", "dept": "医院销售部", "area": "华西", "owner": "黄彩西", "targetQty": 26.0, "targetAmt": 884.0}, {"region": "浙江", "dept": "医院销售部", "area": "华东", "owner": "吴光建", "targetQty": 43.0, "targetAmt": 1462.0}, {"region": "海南", "dept": "医院销售部", "area": "华南", "owner": "许占海", "targetQty": 2.5, "targetAmt": 85.0}, {"region": "湖北", "dept": "医院销售部", "area": "华西", "owner": "陈辉", "targetQty": 28.5, "targetAmt": 969.0}, {"region": "湖南", "dept": "医院销售部", "area": "华南", "owner": "罗险峰", "targetQty": 3.8, "targetAmt": 129.2}, {"region": "甘肃", "dept": "医院销售部", "area": "华西", "owner": "耿福林", "targetQty": 0.6, "targetAmt": 20.4}, {"region": "福建", "dept": "医院销售部", "area": "华南", "owner": "许占海", "targetQty": 32.0, "targetAmt": 1088.0}, {"region": "贵州", "dept": "医院销售部", "area": "华西", "owner": "周辉", "targetQty": 6.0, "targetAmt": 204.0}, {"region": "辽宁", "dept": "医院销售部", "area": "华北", "owner": "卿毅", "targetQty": 14.0, "targetAmt": 476.0}, {"region": "重庆", "dept": "医院销售部", "area": "华西", "owner": "薛文", "targetQty": 44.0, "targetAmt": 1496.0}, {"region": "陕西", "dept": "医院销售部", "area": "华西", "owner": "耿福林", "targetQty": 16.0, "targetAmt": 544.0}, {"region": "黑龙江", "dept": "医院销售部", "area": "华北", "owner": "卿毅", "targetQty": 8.0, "targetAmt": 272.0}], "ytd": [{"dept": "全部", "ytd2026Qty": 202.58, "ytd2026Amt": 6998.94, "ytd2025Qty": 204.22, "ytd2025Amt": 7116.41}, {"dept": "医院销售部", "ytd2026Qty": 169.12, "ytd2026Amt": 5794.97, "ytd2025Qty": 178.0, "ytd2025Amt": 6174.71}, {"dept": "新营销部", "ytd2026Qty": 33.46, "ytd2026Amt": 1203.97, "ytd2025Qty": 26.22, "ytd2025Amt": 941.69}], "areaYtd": [{"area": "华东", "dept": "医院销售部", "ytd2026Qty": 20.44, "ytd2026Amt": 705.2, "ytd2025Qty": 24.98, "ytd2025Amt": 870.88}, {"area": "华北", "dept": "医院销售部", "ytd2026Qty": 30.15, "ytd2026Amt": 1012.13, "ytd2025Qty": 33.94, "ytd2025Amt": 1154.25}, {"area": "华南", "dept": "医院销售部", "ytd2026Qty": 67.79, "ytd2026Amt": 2335.06, "ytd2025Qty": 71.32, "ytd2025Amt": 2487.51}, {"area": "华西", "dept": "医院销售部", "ytd2026Qty": 50.74, "ytd2026Amt": 1742.58, "ytd2025Qty": 47.76, "ytd2025Amt": 1662.08}, {"area": "新营销部", "dept": "新营销部", "ytd2026Qty": 33.46, "ytd2026Amt": 1203.97, "ytd2025Qty": 26.22, "ytd2025Amt": 941.69}], "regionYtd": [{"region": "B端-壹药网", "dept": "新营销部", "ytd2026Qty": 17.93, "ytd2026Amt": 638.41, "ytd2025Qty": 7.54, "ytd2025Amt": 270.71}, {"region": "B端-药师帮", "dept": "新营销部", "ytd2026Qty": 5.1, "ytd2026Amt": 190.27, "ytd2025Qty": 5.14, "ytd2025Amt": 184.52}, {"region": "C端-京东", "dept": "新营销部", "ytd2026Qty": 0.0, "ytd2026Amt": 0.0, "ytd2025Qty": 1.39, "ytd2025Amt": 50.47}, {"region": "C端-其他", "dept": "新营销部", "ytd2026Qty": 2.41, "ytd2026Amt": 87.47, "ytd2025Qty": 0.12, "ytd2025Amt": 4.28}, {"region": "C端-阿里", "dept": "新营销部", "ytd2026Qty": 0.07, "ytd2026Amt": 2.73, "ytd2025Qty": 0.26, "ytd2025Amt": 9.55}, {"region": "KA", "dept": "新营销部", "ytd2026Qty": 7.95, "ytd2026Amt": 285.09, "ytd2025Qty": 11.78, "ytd2025Amt": 422.17}, {"region": "上海", "dept": "医院销售部", "ytd2026Qty": 0.15, "ytd2026Amt": 5.21, "ytd2025Qty": 0.3, "ytd2025Amt": 10.62}, {"region": "云南", "dept": "医院销售部", "ytd2026Qty": 2.17, "ytd2026Amt": 74.42, "ytd2025Qty": 1.65, "ytd2025Amt": 57.62}, {"region": "内蒙古", "dept": "医院销售部", "ytd2026Qty": 1.57, "ytd2026Amt": 51.11, "ytd2025Qty": 0.75, "ytd2025Amt": 24.75}, {"region": "北京", "dept": "医院销售部", "ytd2026Qty": 2.7, "ytd2026Amt": 91.32, "ytd2025Qty": 2.4, "ytd2025Amt": 82.73}, {"region": "吉林", "dept": "医院销售部", "ytd2026Qty": 2.4, "ytd2026Amt": 80.73, "ytd2025Qty": 2.7, "ytd2025Amt": 92.37}, {"region": "四川", "dept": "医院销售部", "ytd2026Qty": 5.33, "ytd2026Amt": 182.37, "ytd2025Qty": 5.92, "ytd2025Amt": 206.31}, {"region": "天津", "dept": "医院销售部", "ytd2026Qty": 0.06, "ytd2026Amt": 1.91, "ytd2025Qty": 0.15, "ytd2025Amt": 5.25}, {"region": "宁夏", "dept": "医院销售部", "ytd2026Qty": 0.15, "ytd2026Amt": 5.1, "ytd2025Qty": 0.15, "ytd2025Amt": 5.2}, {"region": "安徽", "dept": "医院销售部", "ytd2026Qty": 0.86, "ytd2026Amt": 27.91, "ytd2025Qty": 1.05, "ytd2025Amt": 34.81}, {"region": "山东", "dept": "医院销售部", "ytd2026Qty": 9.3, "ytd2026Amt": 314.22, "ytd2025Qty": 10.35, "ytd2025Amt": 352.68}, {"region": "山西", "dept": "医院销售部", "ytd2026Qty": 4.99, "ytd2026Amt": 165.25, "ytd2025Qty": 6.6, "ytd2025Amt": 221.05}, {"region": "广东", "dept": "医院销售部", "ytd2026Qty": 49.61, "ytd2026Amt": 1711.63, "ytd2025Qty": 47.62, "ytd2025Amt": 1664.71}, {"region": "广西", "dept": "医院销售部", "ytd2026Qty": 8.55, "ytd2026Amt": 288.32, "ytd2025Qty": 9.3, "ytd2025Amt": 316.81}, {"region": "江苏", "dept": "医院销售部", "ytd2026Qty": 9.07, "ytd2026Amt": 308.73, "ytd2025Qty": 11.18, "ytd2025Amt": 384.14}, {"region": "江西", "dept": "医院销售部", "ytd2026Qty": 0.62, "ytd2026Amt": 21.26, "ytd2025Qty": 3.22, "ytd2025Amt": 111.61}, {"region": "河北", "dept": "医院销售部", "ytd2026Qty": 2.25, "ytd2026Amt": 76.3, "ytd2025Qty": 5.47, "ytd2025Amt": 187.97}, {"region": "河南", "dept": "医院销售部", "ytd2026Qty": 7.46, "ytd2026Amt": 250.92, "ytd2025Qty": 8.89, "ytd2025Amt": 302.12}, {"region": "浙江", "dept": "医院销售部", "ytd2026Qty": 10.35, "ytd2026Amt": 363.35, "ytd2025Qty": 12.45, "ytd2025Amt": 441.31}, {"region": "海南", "dept": "医院销售部", "ytd2026Qty": 0.53, "ytd2026Amt": 17.47, "ytd2025Qty": 0.6, "ytd2025Amt": 20.42}, {"region": "湖北", "dept": "医院销售部", "ytd2026Qty": 8.18, "ytd2026Amt": 275.62, "ytd2025Qty": 8.78, "ytd2025Amt": 299.98}, {"region": "湖南", "dept": "医院销售部", "ytd2026Qty": 0.82, "ytd2026Amt": 27.89, "ytd2025Qty": 0.97, "ytd2025Amt": 33.24}, {"region": "福建", "dept": "医院销售部", "ytd2026Qty": 7.65, "ytd2026Amt": 268.49, "ytd2025Qty": 9.6, "ytd2025Amt": 340.72}, {"region": "西藏", "dept": "医院销售部", "ytd2026Qty": 0.01, "ytd2026Amt": 0.17, "ytd2025Qty": 0.0, "ytd2025Amt": 0.12}, {"region": "贵州", "dept": "医院销售部", "ytd2026Qty": 1.73, "ytd2026Amt": 56.8, "ytd2025Qty": 1.9, "ytd2025Amt": 63.28}, {"region": "辽宁", "dept": "医院销售部", "ytd2026Qty": 3.69, "ytd2026Amt": 124.44, "ytd2025Qty": 3.56, "ytd2025Amt": 121.23}, {"region": "重庆", "dept": "医院销售部", "ytd2026Qty": 21.07, "ytd2026Amt": 738.66, "ytd2025Qty": 15.07, "ytd2025Amt": 539.84}, {"region": "陕西", "dept": "医院销售部", "ytd2026Qty": 4.65, "ytd2026Amt": 158.51, "ytd2025Qty": 5.4, "ytd2025Amt": 187.61}, {"region": "黑龙江", "dept": "医院销售部", "ytd2026Qty": 3.19, "ytd2026Amt": 106.84, "ytd2025Qty": 1.95, "ytd2025Amt": 66.21}], "regionMonthly2025": [{"region": "B端-壹药网", "dept": "新营销部", "month": 1, "qty": 1.2, "amt": 45.01}, {"region": "B端-壹药网", "dept": "新营销部", "month": 2, "qty": 1.27, "amt": 45.43}, {"region": "B端-壹药网", "dept": "新营销部", "month": 3, "qty": 3.38, "amt": 120.19}, {"region": "B端-壹药网", "dept": "新营销部", "month": 4, "qty": 1.69, "amt": 60.09}, {"region": "B端-壹药网", "dept": "新营销部", "month": 5, "qty": 3.38, "amt": 120.21}, {"region": "B端-壹药网", "dept": "新营销部", "month": 6, "qty": 5.17, "amt": 184.34}, {"region": "B端-壹药网", "dept": "新营销部", "month": 7, "qty": 9.6, "amt": 342.03}, {"region": "B端-壹药网", "dept": "新营销部", "month": 8, "qty": 0.07, "amt": 2.65}, {"region": "B端-壹药网", "dept": "新营销部", "month": 9, "qty": 0.23, "amt": 7.96}, {"region": "B端-壹药网", "dept": "新营销部", "month": 10, "qty": 4.09, "amt": 145.63}, {"region": "B端-壹药网", "dept": "新营销部", "month": 11, "qty": 4.05, "amt": 144.17}, {"region": "B端-壹药网", "dept": "新营销部", "month": 12, "qty": 4.99, "amt": 177.45}, {"region": "B端-药师帮", "dept": "新营销部", "month": 1, "qty": 1.39, "amt": 51.71}, {"region": "B端-药师帮", "dept": "新营销部", "month": 2, "qty": 0.82, "amt": 29.2}, {"region": "B端-药师帮", "dept": "新营销部", "month": 3, "qty": 1.39, "amt": 49.13}, {"region": "B端-药师帮", "dept": "新营销部", "month": 4, "qty": 1.54, "amt": 54.48}, {"region": "B端-药师帮", "dept": "新营销部", "month": 5, "qty": 1.73, "amt": 61.07}, {"region": "B端-药师帮", "dept": "新营销部", "month": 6, "qty": 1.65, "amt": 58.43}, {"region": "B端-药师帮", "dept": "新营销部", "month": 7, "qty": 0.19, "amt": 6.63}, {"region": "B端-药师帮", "dept": "新营销部", "month": 8, "qty": 0.26, "amt": 9.32}, {"region": "B端-药师帮", "dept": "新营销部", "month": 9, "qty": 0.49, "amt": 17.35}, {"region": "B端-药师帮", "dept": "新营销部", "month": 10, "qty": 0.45, "amt": 16.03}, {"region": "B端-药师帮", "dept": "新营销部", "month": 11, "qty": 0.07, "amt": 2.67}, {"region": "B端-药师帮", "dept": "新营销部", "month": 12, "qty": 0.11, "amt": 4.01}, {"region": "C端-京东", "dept": "新营销部", "month": 1, "qty": 0.41, "amt": 15.0}, {"region": "C端-京东", "dept": "新营销部", "month": 2, "qty": 0.11, "amt": 4.09}, {"region": "C端-京东", "dept": "新营销部", "month": 3, "qty": 0.45, "amt": 16.37}, {"region": "C端-京东", "dept": "新营销部", "month": 4, "qty": 0.41, "amt": 15.0}, {"region": "C端-京东", "dept": "新营销部", "month": 5, "qty": 0.75, "amt": 27.28}, {"region": "C端-京东", "dept": "新营销部", "month": 6, "qty": 0.45, "amt": 16.37}, {"region": "C端-京东", "dept": "新营销部", "month": 8, "qty": 0.6, "amt": 21.82}, {"region": "C端-京东", "dept": "新营销部", "month": 9, "qty": 0.53, "amt": 19.1}, {"region": "C端-京东", "dept": "新营销部", "month": 10, "qty": 0.38, "amt": 13.64}, {"region": "C端-其他", "dept": "新营销部", "month": 1, "qty": 0.01, "amt": 0.06}, {"region": "C端-其他", "dept": "新营销部", "month": 2, "qty": 0.04, "amt": 1.41}, {"region": "C端-其他", "dept": "新营销部", "month": 4, "qty": 0.07, "amt": 2.81}, {"region": "C端-其他", "dept": "新营销部", "month": 5, "qty": 0.07, "amt": 2.81}, {"region": "C端-其他", "dept": "新营销部", "month": 6, "qty": 0.08, "amt": 2.87}, {"region": "C端-其他", "dept": "新营销部", "month": 7, "qty": 0.04, "amt": 1.41}, {"region": "C端-其他", "dept": "新营销部", "month": 8, "qty": 0.08, "amt": 2.89}, {"region": "C端-其他", "dept": "新营销部", "month": 10, "qty": 0.02, "amt": 0.25}, {"region": "C端-其他", "dept": "新营销部", "month": 11, "qty": 0.26, "amt": 5.81}, {"region": "C端-其他", "dept": "新营销部", "month": 12, "qty": 0.09, "amt": 2.94}, {"region": "C端-阿里", "dept": "新营销部", "month": 1, "qty": 0.11, "amt": 4.09}, {"region": "C端-阿里", "dept": "新营销部", "month": 3, "qty": 0.15, "amt": 5.46}, {"region": "C端-阿里", "dept": "新营销部", "month": 5, "qty": 0.19, "amt": 6.82}, {"region": "C端-阿里", "dept": "新营销部", "month": 6, "qty": 0.23, "amt": 8.18}, {"region": "C端-阿里", "dept": "新营销部", "month": 8, "qty": 0.04, "amt": 1.36}, {"region": "C端-阿里", "dept": "新营销部", "month": 9, "qty": 0.07, "amt": 2.73}, {"region": "C端-阿里", "dept": "新营销部", "month": 10, "qty": 0.15, "amt": 5.46}, {"region": "C端-阿里", "dept": "新营销部", "month": 12, "qty": 0.11, "amt": 4.09}, {"region": "KA", "dept": "新营销部", "month": 1, "qty": 3.75, "amt": 134.7}, {"region": "KA", "dept": "新营销部", "month": 2, "qty": 1.88, "amt": 67.16}, {"region": "KA", "dept": "新营销部", "month": 3, "qty": 3.15, "amt": 113.2}, {"region": "KA", "dept": "新营销部", "month": 4, "qty": 3.0, "amt": 107.11}, {"region": "KA", "dept": "新营销部", "month": 5, "qty": 3.9, "amt": 138.78}, {"region": "KA", "dept": "新营销部", "month": 6, "qty": 2.4, "amt": 85.62}, {"region": "KA", "dept": "新营销部", "month": 8, "qty": 2.02, "amt": 72.44}, {"region": "KA", "dept": "新营销部", "month": 9, "qty": 3.71, "amt": 133.11}, {"region": "KA", "dept": "新营销部", "month": 10, "qty": 1.01, "amt": 36.45}, {"region": "KA", "dept": "新营销部", "month": 11, "qty": 5.55, "amt": 198.67}, {"region": "上海", "dept": "医院销售部", "month": 3, "qty": 0.15, "amt": 5.31}, {"region": "上海", "dept": "医院销售部", "month": 4, "qty": 0.15, "amt": 5.31}, {"region": "上海", "dept": "医院销售部", "month": 5, "qty": 0.15, "amt": 5.31}, {"region": "上海", "dept": "医院销售部", "month": 8, "qty": 0.07, "amt": 2.61}, {"region": "上海", "dept": "医院销售部", "month": 9, "qty": 0.07, "amt": 2.61}, {"region": "云南", "dept": "医院销售部", "month": 1, "qty": 0.38, "amt": 13.19}, {"region": "云南", "dept": "医院销售部", "month": 2, "qty": 0.07, "amt": 2.63}, {"region": "云南", "dept": "医院销售部", "month": 3, "qty": 0.45, "amt": 15.71}, {"region": "云南", "dept": "医院销售部", "month": 4, "qty": 0.97, "amt": 33.98}, {"region": "云南", "dept": "医院销售部", "month": 5, "qty": 0.6, "amt": 20.96}, {"region": "云南", "dept": "医院销售部", "month": 6, "qty": 1.12, "amt": 38.86}, {"region": "云南", "dept": "医院销售部", "month": 7, "qty": 0.07, "amt": 2.52}, {"region": "云南", "dept": "医院销售部", "month": 8, "qty": 0.15, "amt": 5.1}, {"region": "云南", "dept": "医院销售部", "month": 9, "qty": 0.53, "amt": 17.93}, {"region": "云南", "dept": "医院销售部", "month": 10, "qty": 0.3, "amt": 10.26}, {"region": "云南", "dept": "医院销售部", "month": 11, "qty": 0.3, "amt": 10.31}, {"region": "云南", "dept": "医院销售部", "month": 12, "qty": 0.07, "amt": 2.52}, {"region": "内蒙古", "dept": "医院销售部", "month": 1, "qty": 0.3, "amt": 9.98}, {"region": "内蒙古", "dept": "医院销售部", "month": 3, "qty": 0.3, "amt": 9.85}, {"region": "内蒙古", "dept": "医院销售部", "month": 4, "qty": 0.15, "amt": 4.92}, {"region": "内蒙古", "dept": "医院销售部", "month": 5, "qty": 0.15, "amt": 4.94}, {"region": "内蒙古", "dept": "医院销售部", "month": 6, "qty": 0.07, "amt": 2.47}, {"region": "内蒙古", "dept": "医院销售部", "month": 8, "qty": 0.38, "amt": 12.31}, {"region": "内蒙古", "dept": "医院销售部", "month": 9, "qty": 0.3, "amt": 9.79}, {"region": "内蒙古", "dept": "医院销售部", "month": 10, "qty": 0.23, "amt": 7.39}, {"region": "内蒙古", "dept": "医院销售部", "month": 11, "qty": 0.23, "amt": 7.39}, {"region": "内蒙古", "dept": "医院销售部", "month": 12, "qty": 0.15, "amt": 4.92}, {"region": "北京", "dept": "医院销售部", "month": 1, "qty": 0.9, "amt": 31.02}, {"region": "北京", "dept": "医院销售部", "month": 2, "qty": 0.53, "amt": 18.1}, {"region": "北京", "dept": "医院销售部", "month": 3, "qty": 0.53, "amt": 18.1}, {"region": "北京", "dept": "医院销售部", "month": 4, "qty": 0.45, "amt": 15.51}, {"region": "北京", "dept": "医院销售部", "month": 5, "qty": 0.6, "amt": 20.68}, {"region": "北京", "dept": "医院销售部", "month": 6, "qty": 0.3, "amt": 10.15}, {"region": "北京", "dept": "医院销售部", "month": 7, "qty": 0.44, "amt": 14.85}, {"region": "北京", "dept": "医院销售部", "month": 8, "qty": 0.3, "amt": 10.15}, {"region": "北京", "dept": "医院销售部", "month": 9, "qty": 0.3, "amt": 10.15}, {"region": "北京", "dept": "医院销售部", "month": 10, "qty": 0.45, "amt": 15.22}, {"region": "北京", "dept": "医院销售部", "month": 12, "qty": 0.38, "amt": 12.68}, {"region": "吉林", "dept": "医院销售部", "month": 1, "qty": 1.12, "amt": 38.57}, {"region": "吉林", "dept": "医院销售部", "month": 2, "qty": 0.3, "amt": 10.28}, {"region": "吉林", "dept": "医院销售部", "month": 3, "qty": 0.53, "amt": 18.0}, {"region": "吉林", "dept": "医院销售部", "month": 4, "qty": 0.75, "amt": 25.52}, {"region": "吉林", "dept": "医院销售部", "month": 5, "qty": 0.6, "amt": 20.18}, {"region": "吉林", "dept": "医院销售部", "month": 6, "qty": 0.75, "amt": 25.23}, {"region": "吉林", "dept": "医院销售部", "month": 7, "qty": 0.3, "amt": 10.09}, {"region": "吉林", "dept": "医院销售部", "month": 8, "qty": 0.07, "amt": 2.52}, {"region": "吉林", "dept": "医院销售部", "month": 9, "qty": 0.68, "amt": 22.71}, {"region": "吉林", "dept": "医院销售部", "month": 10, "qty": 0.6, "amt": 20.18}, {"region": "吉林", "dept": "医院销售部", "month": 11, "qty": 0.15, "amt": 5.05}, {"region": "吉林", "dept": "医院销售部", "month": 12, "qty": 0.6, "amt": 20.18}, {"region": "四川", "dept": "医院销售部", "month": 1, "qty": 1.24, "amt": 43.07}, {"region": "四川", "dept": "医院销售部", "month": 2, "qty": 1.24, "amt": 43.13}, {"region": "四川", "dept": "医院销售部", "month": 3, "qty": 1.99, "amt": 69.46}, {"region": "四川", "dept": "医院销售部", "month": 4, "qty": 1.46, "amt": 50.65}, {"region": "四川", "dept": "医院销售部", "month": 5, "qty": 1.98, "amt": 68.45}, {"region": "四川", "dept": "医院销售部", "month": 6, "qty": 1.12, "amt": 38.62}, {"region": "四川", "dept": "医院销售部", "month": 7, "qty": 1.16, "amt": 39.93}, {"region": "四川", "dept": "医院销售部", "month": 8, "qty": 1.24, "amt": 42.25}, {"region": "四川", "dept": "医院销售部", "month": 9, "qty": 1.61, "amt": 55.29}, {"region": "四川", "dept": "医院销售部", "month": 10, "qty": 2.1, "amt": 71.96}, {"region": "四川", "dept": "医院销售部", "month": 11, "qty": 1.16, "amt": 39.85}, {"region": "四川", "dept": "医院销售部", "month": 12, "qty": 0.99, "amt": 33.75}, {"region": "天津", "dept": "医院销售部", "month": 3, "qty": 0.07, "amt": 2.63}, {"region": "天津", "dept": "医院销售部", "month": 4, "qty": 0.07, "amt": 2.63}, {"region": "天津", "dept": "医院销售部", "month": 8, "qty": 0.03, "amt": 1.03}, {"region": "天津", "dept": "医院销售部", "month": 9, "qty": 0.06, "amt": 2.06}, {"region": "宁夏", "dept": "医院销售部", "month": 1, "qty": 0.07, "amt": 2.6}, {"region": "宁夏", "dept": "医院销售部", "month": 3, "qty": 0.07, "amt": 2.6}, {"region": "宁夏", "dept": "医院销售部", "month": 5, "qty": 0.07, "amt": 2.6}, {"region": "宁夏", "dept": "医院销售部", "month": 6, "qty": 0.07, "amt": 2.6}, {"region": "宁夏", "dept": "医院销售部", "month": 11, "qty": 0.07, "amt": 2.58}, {"region": "安徽", "dept": "医院销售部", "month": 1, "qty": 0.3, "amt": 9.83}, {"region": "安徽", "dept": "医院销售部", "month": 2, "qty": 0.07, "amt": 2.59}, {"region": "安徽", "dept": "医院销售部", "month": 3, "qty": 0.26, "amt": 8.49}, {"region": "安徽", "dept": "医院销售部", "month": 4, "qty": 0.41, "amt": 13.9}, {"region": "安徽", "dept": "医院销售部", "month": 5, "qty": 0.19, "amt": 6.51}, {"region": "安徽", "dept": "医院销售部", "month": 6, "qty": 0.07, "amt": 2.6}, {"region": "安徽", "dept": "医院销售部", "month": 7, "qty": 0.19, "amt": 6.27}, {"region": "安徽", "dept": "医院销售部", "month": 8, "qty": 0.15, "amt": 5.03}, {"region": "安徽", "dept": "医院销售部", "month": 9, "qty": 0.34, "amt": 11.52}, {"region": "安徽", "dept": "医院销售部", "month": 10, "qty": 0.3, "amt": 10.22}, {"region": "安徽", "dept": "医院销售部", "month": 11, "qty": 0.19, "amt": 6.31}, {"region": "安徽", "dept": "医院销售部", "month": 12, "qty": 0.26, "amt": 8.96}, {"region": "山东", "dept": "医院销售部", "month": 1, "qty": 2.85, "amt": 98.14}, {"region": "山东", "dept": "医院销售部", "month": 2, "qty": 1.88, "amt": 63.83}, {"region": "山东", "dept": "医院销售部", "month": 3, "qty": 1.73, "amt": 58.06}, {"region": "山东", "dept": "医院销售部", "month": 4, "qty": 3.9, "amt": 132.66}, {"region": "山东", "dept": "医院销售部", "month": 5, "qty": 1.2, "amt": 39.99}, {"region": "山东", "dept": "医院销售部", "month": 6, "qty": 3.15, "amt": 105.87}, {"region": "山东", "dept": "医院销售部", "month": 7, "qty": 1.12, "amt": 37.9}, {"region": "山东", "dept": "医院销售部", "month": 8, "qty": 1.57, "amt": 52.57}, {"region": "山东", "dept": "医院销售部", "month": 9, "qty": 2.62, "amt": 88.62}, {"region": "山东", "dept": "医院销售部", "month": 10, "qty": 1.65, "amt": 55.92}, {"region": "山东", "dept": "医院销售部", "month": 11, "qty": 1.35, "amt": 44.75}, {"region": "山东", "dept": "医院销售部", "month": 12, "qty": 1.8, "amt": 59.95}, {"region": "山西", "dept": "医院销售部", "month": 1, "qty": 1.95, "amt": 63.9}, {"region": "山西", "dept": "医院销售部", "month": 2, "qty": 1.09, "amt": 37.04}, {"region": "山西", "dept": "医院销售部", "month": 3, "qty": 1.65, "amt": 55.92}, {"region": "山西", "dept": "医院销售部", "month": 4, "qty": 1.91, "amt": 64.19}, {"region": "山西", "dept": "医院销售部", "month": 5, "qty": 1.16, "amt": 38.85}, {"region": "山西", "dept": "医院销售部", "month": 6, "qty": 2.51, "amt": 83.58}, {"region": "山西", "dept": "医院销售部", "month": 7, "qty": 0.23, "amt": 7.43}, {"region": "山西", "dept": "医院销售部", "month": 8, "qty": 0.6, "amt": 19.63}, {"region": "山西", "dept": "医院销售部", "month": 9, "qty": 1.12, "amt": 37.41}, {"region": "山西", "dept": "医院销售部", "month": 10, "qty": 1.43, "amt": 47.0}, {"region": "山西", "dept": "医院销售部", "month": 11, "qty": 1.05, "amt": 34.94}, {"region": "山西", "dept": "医院销售部", "month": 12, "qty": 2.02, "amt": 67.74}, {"region": "广东", "dept": "医院销售部", "month": 1, "qty": 18.79, "amt": 660.24}, {"region": "广东", "dept": "医院销售部", "month": 2, "qty": 6.6, "amt": 231.65}, {"region": "广东", "dept": "医院销售部", "month": 3, "qty": 8.85, "amt": 309.46}, {"region": "广东", "dept": "医院销售部", "month": 4, "qty": 15.49, "amt": 537.69}, {"region": "广东", "dept": "医院销售部", "month": 5, "qty": 12.41, "amt": 433.87}, {"region": "广东", "dept": "医院销售部", "month": 6, "qty": 23.29, "amt": 819.01}, {"region": "广东", "dept": "医院销售部", "month": 7, "qty": 9.56, "amt": 342.02}, {"region": "广东", "dept": "医院销售部", "month": 8, "qty": 6.19, "amt": 217.69}, {"region": "广东", "dept": "医院销售部", "month": 9, "qty": 13.16, "amt": 461.9}, {"region": "广东", "dept": "医院销售部", "month": 10, "qty": 8.32, "amt": 292.71}, {"region": "广东", "dept": "医院销售部", "month": 11, "qty": 10.2, "amt": 347.56}, {"region": "广东", "dept": "医院销售部", "month": 12, "qty": 11.92, "amt": 411.87}, {"region": "广西", "dept": "医院销售部", "month": 1, "qty": 3.45, "amt": 118.67}, {"region": "广西", "dept": "医院销售部", "month": 2, "qty": 0.97, "amt": 33.43}, {"region": "广西", "dept": "医院销售部", "month": 3, "qty": 2.7, "amt": 91.36}, {"region": "广西", "dept": "医院销售部", "month": 4, "qty": 2.17, "amt": 73.35}, {"region": "广西", "dept": "医院销售部", "month": 5, "qty": 1.95, "amt": 65.76}, {"region": "广西", "dept": "医院销售部", "month": 6, "qty": 3.15, "amt": 106.24}, {"region": "广西", "dept": "医院销售部", "month": 7, "qty": 1.95, "amt": 65.82}, {"region": "广西", "dept": "医院销售部", "month": 8, "qty": 2.4, "amt": 81.06}, {"region": "广西", "dept": "医院销售部", "month": 9, "qty": 2.62, "amt": 88.77}, {"region": "广西", "dept": "医院销售部", "month": 10, "qty": 1.27, "amt": 42.89}, {"region": "广西", "dept": "医院销售部", "month": 11, "qty": 2.17, "amt": 73.55}, {"region": "广西", "dept": "医院销售部", "month": 12, "qty": 3.52, "amt": 119.32}, {"region": "江苏", "dept": "医院销售部", "month": 1, "qty": 4.72, "amt": 162.13}, {"region": "江苏", "dept": "医院销售部", "month": 2, "qty": 1.05, "amt": 36.9}, {"region": "江苏", "dept": "医院销售部", "month": 3, "qty": 3.0, "amt": 103.46}, {"region": "江苏", "dept": "医院销售部", "month": 4, "qty": 2.85, "amt": 97.12}, {"region": "江苏", "dept": "医院销售部", "month": 5, "qty": 2.85, "amt": 99.43}, {"region": "江苏", "dept": "医院销售部", "month": 6, "qty": 2.7, "amt": 92.67}, {"region": "江苏", "dept": "医院销售部", "month": 7, "qty": 2.33, "amt": 78.07}, {"region": "江苏", "dept": "医院销售部", "month": 8, "qty": 2.1, "amt": 72.63}, {"region": "江苏", "dept": "医院销售部", "month": 9, "qty": 2.92, "amt": 97.85}, {"region": "江苏", "dept": "医院销售部", "month": 10, "qty": 2.17, "amt": 75.14}, {"region": "江苏", "dept": "医院销售部", "month": 11, "qty": 1.65, "amt": 55.23}, {"region": "江苏", "dept": "医院销售部", "month": 12, "qty": 2.55, "amt": 85.94}, {"region": "江西", "dept": "医院销售部", "month": 1, "qty": 1.05, "amt": 36.62}, {"region": "江西", "dept": "医院销售部", "month": 2, "qty": 0.6, "amt": 20.96}, {"region": "江西", "dept": "医院销售部", "month": 3, "qty": 0.6, "amt": 20.68}, {"region": "江西", "dept": "医院销售部", "month": 4, "qty": 0.97, "amt": 33.35}, {"region": "江西", "dept": "医院销售部", "month": 5, "qty": 1.12, "amt": 38.5}, {"region": "江西", "dept": "医院销售部", "month": 6, "qty": 0.38, "amt": 12.83}, {"region": "江西", "dept": "医院销售部", "month": 7, "qty": 0.82, "amt": 28.11}, {"region": "江西", "dept": "医院销售部", "month": 8, "qty": 1.2, "amt": 41.05}, {"region": "江西", "dept": "医院销售部", "month": 9, "qty": 0.9, "amt": 30.89}, {"region": "江西", "dept": "医院销售部", "month": 10, "qty": 0.45, "amt": 15.39}, {"region": "江西", "dept": "医院销售部", "month": 11, "qty": 0.45, "amt": 15.36}, {"region": "江西", "dept": "医院销售部", "month": 12, "qty": 0.07, "amt": 2.52}, {"region": "河北", "dept": "医院销售部", "month": 1, "qty": 1.8, "amt": 62.18}, {"region": "河北", "dept": "医院销售部", "month": 2, "qty": 0.9, "amt": 31.13}, {"region": "河北", "dept": "医院销售部", "month": 3, "qty": 1.5, "amt": 51.49}, {"region": "河北", "dept": "医院销售部", "month": 4, "qty": 1.27, "amt": 43.17}, {"region": "河北", "dept": "医院销售部", "month": 5, "qty": 1.95, "amt": 66.21}, {"region": "河北", "dept": "医院销售部", "month": 6, "qty": 1.8, "amt": 61.08}, {"region": "河北", "dept": "医院销售部", "month": 7, "qty": 1.12, "amt": 38.18}, {"region": "河北", "dept": "医院销售部", "month": 8, "qty": 0.97, "amt": 32.99}, {"region": "河北", "dept": "医院销售部", "month": 9, "qty": 2.25, "amt": 76.3}, {"region": "河北", "dept": "医院销售部", "month": 10, "qty": 1.05, "amt": 35.54}, {"region": "河北", "dept": "医院销售部", "month": 11, "qty": 0.82, "amt": 27.92}, {"region": "河北", "dept": "医院销售部", "month": 12, "qty": 0.38, "amt": 12.7}, {"region": "河南", "dept": "医院销售部", "month": 1, "qty": 2.55, "amt": 87.42}, {"region": "河南", "dept": "医院销售部", "month": 2, "qty": 1.35, "amt": 46.28}, {"region": "河南", "dept": "医院销售部", "month": 3, "qty": 2.02, "amt": 68.66}, {"region": "河南", "dept": "医院销售部", "month": 4, "qty": 2.96, "amt": 99.75}, {"region": "河南", "dept": "医院销售部", "month": 5, "qty": 1.27, "amt": 42.95}, {"region": "河南", "dept": "医院销售部", "month": 6, "qty": 2.51, "amt": 84.38}, {"region": "河南", "dept": "医院销售部", "month": 7, "qty": 2.06, "amt": 69.41}, {"region": "河南", "dept": "医院销售部", "month": 8, "qty": 1.27, "amt": 42.89}, {"region": "河南", "dept": "医院销售部", "month": 9, "qty": 2.77, "amt": 93.34}, {"region": "河南", "dept": "医院销售部", "month": 10, "qty": 1.65, "amt": 55.43}, {"region": "河南", "dept": "医院销售部", "month": 11, "qty": 0.38, "amt": 12.61}, {"region": "河南", "dept": "医院销售部", "month": 12, "qty": 1.57, "amt": 52.98}, {"region": "浙江", "dept": "医院销售部", "month": 1, "qty": 4.2, "amt": 150.27}, {"region": "浙江", "dept": "医院销售部", "month": 2, "qty": 2.1, "amt": 75.14}, {"region": "浙江", "dept": "医院销售部", "month": 3, "qty": 3.15, "amt": 110.58}, {"region": "浙江", "dept": "医院销售部", "month": 4, "qty": 3.0, "amt": 105.32}, {"region": "浙江", "dept": "医院销售部", "month": 5, "qty": 3.0, "amt": 105.32}, {"region": "浙江", "dept": "医院销售部", "month": 6, "qty": 3.9, "amt": 136.91}, {"region": "浙江", "dept": "医院销售部", "month": 7, "qty": 5.47, "amt": 192.2}, {"region": "浙江", "dept": "医院销售部", "month": 8, "qty": 2.17, "amt": 76.36}, {"region": "浙江", "dept": "医院销售部", "month": 9, "qty": 3.6, "amt": 126.38}, {"region": "浙江", "dept": "医院销售部", "month": 10, "qty": 3.23, "amt": 113.22}, {"region": "浙江", "dept": "医院销售部", "month": 11, "qty": 2.4, "amt": 84.25}, {"region": "浙江", "dept": "医院销售部", "month": 12, "qty": 3.9, "amt": 136.91}, {"region": "海南", "dept": "医院销售部", "month": 1, "qty": 0.45, "amt": 15.26}, {"region": "海南", "dept": "医院销售部", "month": 2, "qty": 0.15, "amt": 5.16}, {"region": "海南", "dept": "医院销售部", "month": 5, "qty": 0.15, "amt": 4.99}, {"region": "海南", "dept": "医院销售部", "month": 9, "qty": 0.15, "amt": 4.99}, {"region": "海南", "dept": "医院销售部", "month": 10, "qty": 0.15, "amt": 4.99}, {"region": "海南", "dept": "医院销售部", "month": 11, "qty": 0.07, "amt": 2.5}, {"region": "海南", "dept": "医院销售部", "month": 12, "qty": 0.23, "amt": 7.49}, {"region": "湖北", "dept": "医院销售部", "month": 1, "qty": 2.85, "amt": 98.44}, {"region": "湖北", "dept": "医院销售部", "month": 2, "qty": 1.05, "amt": 35.94}, {"region": "湖北", "dept": "医院销售部", "month": 3, "qty": 2.1, "amt": 72.17}, {"region": "湖北", "dept": "医院销售部", "month": 4, "qty": 2.85, "amt": 95.94}, {"region": "湖北", "dept": "医院销售部", "month": 5, "qty": 2.62, "amt": 88.65}, {"region": "湖北", "dept": "医院销售部", "month": 6, "qty": 2.02, "amt": 68.3}, {"region": "湖北", "dept": "医院销售部", "month": 7, "qty": 1.65, "amt": 55.47}, {"region": "湖北", "dept": "医院销售部", "month": 8, "qty": 1.95, "amt": 65.76}, {"region": "湖北", "dept": "医院销售部", "month": 9, "qty": 3.52, "amt": 118.88}, {"region": "湖北", "dept": "医院销售部", "month": 10, "qty": 1.2, "amt": 40.36}, {"region": "湖北", "dept": "医院销售部", "month": 11, "qty": 1.5, "amt": 50.56}, {"region": "湖北", "dept": "医院销售部", "month": 12, "qty": 2.7, "amt": 91.0}, {"region": "湖南", "dept": "医院销售部", "month": 1, "qty": 0.38, "amt": 13.0}, {"region": "湖南", "dept": "医院销售部", "month": 4, "qty": 0.6, "amt": 20.24}, {"region": "湖南", "dept": "医院销售部", "month": 5, "qty": 0.3, "amt": 10.04}, {"region": "湖南", "dept": "医院销售部", "month": 6, "qty": 0.15, "amt": 5.1}, {"region": "湖南", "dept": "医院销售部", "month": 7, "qty": 0.23, "amt": 7.49}, {"region": "湖南", "dept": "医院销售部", "month": 8, "qty": 0.23, "amt": 7.65}, {"region": "湖南", "dept": "医院销售部", "month": 9, "qty": 0.53, "amt": 17.69}, {"region": "湖南", "dept": "医院销售部", "month": 10, "qty": 0.15, "amt": 5.1}, {"region": "湖南", "dept": "医院销售部", "month": 11, "qty": 0.3, "amt": 10.02}, {"region": "湖南", "dept": "医院销售部", "month": 12, "qty": 0.15, "amt": 5.1}, {"region": "福建", "dept": "医院销售部", "month": 1, "qty": 3.15, "amt": 112.7}, {"region": "福建", "dept": "医院销售部", "month": 2, "qty": 0.38, "amt": 13.42}, {"region": "福建", "dept": "医院销售部", "month": 3, "qty": 3.52, "amt": 125.1}, {"region": "福建", "dept": "医院销售部", "month": 4, "qty": 2.55, "amt": 89.5}, {"region": "福建", "dept": "医院销售部", "month": 5, "qty": 3.23, "amt": 113.19}, {"region": "福建", "dept": "医院销售部", "month": 6, "qty": 4.05, "amt": 142.14}, {"region": "福建", "dept": "医院销售部", "month": 7, "qty": 0.9, "amt": 31.59}, {"region": "福建", "dept": "医院销售部", "month": 8, "qty": 3.45, "amt": 121.09}, {"region": "福建", "dept": "医院销售部", "month": 9, "qty": 2.25, "amt": 78.97}, {"region": "福建", "dept": "医院销售部", "month": 10, "qty": 0.75, "amt": 26.32}, {"region": "福建", "dept": "医院销售部", "month": 11, "qty": 1.73, "amt": 60.54}, {"region": "福建", "dept": "医院销售部", "month": 12, "qty": 2.62, "amt": 92.13}, {"region": "西藏", "dept": "医院销售部", "month": 4, "qty": 0.0, "amt": 0.12}, {"region": "西藏", "dept": "医院销售部", "month": 8, "qty": 0.01, "amt": 0.17}, {"region": "西藏", "dept": "医院销售部", "month": 11, "qty": 0.01, "amt": 0.17}, {"region": "贵州", "dept": "医院销售部", "month": 1, "qty": 0.68, "amt": 22.53}, {"region": "贵州", "dept": "医院销售部", "month": 2, "qty": 0.53, "amt": 17.61}, {"region": "贵州", "dept": "医院销售部", "month": 3, "qty": 0.1, "amt": 3.2}, {"region": "贵州", "dept": "医院销售部", "month": 4, "qty": 0.68, "amt": 22.51}, {"region": "贵州", "dept": "医院销售部", "month": 5, "qty": 0.15, "amt": 4.94}, {"region": "贵州", "dept": "医院销售部", "month": 6, "qty": 0.53, "amt": 17.67}, {"region": "贵州", "dept": "医院销售部", "month": 7, "qty": 0.6, "amt": 19.84}, {"region": "贵州", "dept": "医院销售部", "month": 8, "qty": 0.6, "amt": 19.8}, {"region": "贵州", "dept": "医院销售部", "month": 9, "qty": 0.07, "amt": 2.52}, {"region": "贵州", "dept": "医院销售部", "month": 10, "qty": 0.9, "amt": 29.84}, {"region": "贵州", "dept": "医院销售部", "month": 11, "qty": 0.6, "amt": 19.77}, {"region": "辽宁", "dept": "医院销售部", "month": 1, "qty": 0.82, "amt": 28.28}, {"region": "辽宁", "dept": "医院销售部", "month": 2, "qty": 0.86, "amt": 29.52}, {"region": "辽宁", "dept": "医院销售部", "month": 3, "qty": 0.68, "amt": 23.04}, {"region": "辽宁", "dept": "医院销售部", "month": 4, "qty": 1.35, "amt": 45.43}, {"region": "辽宁", "dept": "医院销售部", "month": 5, "qty": 0.82, "amt": 27.89}, {"region": "辽宁", "dept": "医院销售部", "month": 6, "qty": 0.97, "amt": 32.8}, {"region": "辽宁", "dept": "医院销售部", "month": 7, "qty": 0.6, "amt": 20.18}, {"region": "辽宁", "dept": "医院销售部", "month": 8, "qty": 1.05, "amt": 35.32}, {"region": "辽宁", "dept": "医院销售部", "month": 9, "qty": 0.97, "amt": 32.8}, {"region": "辽宁", "dept": "医院销售部", "month": 10, "qty": 0.75, "amt": 25.23}, {"region": "辽宁", "dept": "医院销售部", "month": 11, "qty": 0.97, "amt": 32.8}, {"region": "辽宁", "dept": "医院销售部", "month": 12, "qty": 0.82, "amt": 27.75}, {"region": "重庆", "dept": "医院销售部", "month": 1, "qty": 4.28, "amt": 152.95}, {"region": "重庆", "dept": "医院销售部", "month": 2, "qty": 2.7, "amt": 96.6}, {"region": "重庆", "dept": "医院销售部", "month": 3, "qty": 3.23, "amt": 115.47}, {"region": "重庆", "dept": "医院销售部", "month": 4, "qty": 4.88, "amt": 174.84}, {"region": "重庆", "dept": "医院销售部", "month": 5, "qty": 2.17, "amt": 77.7}, {"region": "重庆", "dept": "医院销售部", "month": 6, "qty": 5.4, "amt": 192.04}, {"region": "重庆", "dept": "医院销售部", "month": 7, "qty": 2.62, "amt": 92.14}, {"region": "重庆", "dept": "医院销售部", "month": 8, "qty": 2.48, "amt": 86.75}, {"region": "重庆", "dept": "医院销售部", "month": 9, "qty": 4.88, "amt": 171.74}, {"region": "重庆", "dept": "医院销售部", "month": 10, "qty": 2.85, "amt": 99.98}, {"region": "重庆", "dept": "医院销售部", "month": 11, "qty": 3.6, "amt": 126.83}, {"region": "重庆", "dept": "医院销售部", "month": 12, "qty": 0.6, "amt": 20.81}, {"region": "陕西", "dept": "医院销售部", "month": 1, "qty": 1.35, "amt": 46.84}, {"region": "陕西", "dept": "医院销售部", "month": 2, "qty": 1.2, "amt": 41.81}, {"region": "陕西", "dept": "医院销售部", "month": 3, "qty": 0.97, "amt": 33.87}, {"region": "陕西", "dept": "医院销售部", "month": 4, "qty": 1.88, "amt": 65.09}, {"region": "陕西", "dept": "医院销售部", "month": 5, "qty": 0.97, "amt": 33.67}, {"region": "陕西", "dept": "医院销售部", "month": 6, "qty": 1.39, "amt": 48.65}, {"region": "陕西", "dept": "医院销售部", "month": 7, "qty": 0.26, "amt": 7.57}, {"region": "陕西", "dept": "医院销售部", "month": 8, "qty": 1.2, "amt": 40.94}, {"region": "陕西", "dept": "医院销售部", "month": 9, "qty": 1.35, "amt": 46.02}, {"region": "陕西", "dept": "医院销售部", "month": 10, "qty": 0.75, "amt": 25.59}, {"region": "陕西", "dept": "医院销售部", "month": 11, "qty": 1.5, "amt": 50.98}, {"region": "陕西", "dept": "医院销售部", "month": 12, "qty": 1.57, "amt": 53.64}, {"region": "黑龙江", "dept": "医院销售部", "month": 1, "qty": 0.71, "amt": 24.28}, {"region": "黑龙江", "dept": "医院销售部", "month": 2, "qty": 0.19, "amt": 6.28}, {"region": "黑龙江", "dept": "医院销售部", "month": 3, "qty": 0.6, "amt": 20.33}, {"region": "黑龙江", "dept": "医院销售部", "month": 4, "qty": 0.45, "amt": 15.32}, {"region": "黑龙江", "dept": "医院销售部", "month": 5, "qty": 0.6, "amt": 20.22}, {"region": "黑龙江", "dept": "医院销售部", "month": 6, "qty": 0.71, "amt": 23.9}, {"region": "黑龙江", "dept": "医院销售部", "month": 7, "qty": 0.56, "amt": 18.87}, {"region": "黑龙江", "dept": "医院销售部", "month": 8, "qty": 0.94, "amt": 31.47}, {"region": "黑龙江", "dept": "医院销售部", "month": 9, "qty": 0.75, "amt": 25.13}, {"region": "黑龙江", "dept": "医院销售部", "month": 10, "qty": 0.3, "amt": 10.09}, {"region": "黑龙江", "dept": "医院销售部", "month": 11, "qty": 0.38, "amt": 12.66}, {"region": "黑龙江", "dept": "医院销售部", "month": 12, "qty": 0.3, "amt": 10.09}], "regionMonthly2026": [{"region": "B端-壹药网", "dept": "新营销部", "month": 1, "qty": 1.8, "amt": 64.13}, {"region": "B端-壹药网", "dept": "新营销部", "month": 2, "qty": 3.83, "amt": 136.28}, {"region": "B端-壹药网", "dept": "新营销部", "month": 3, "qty": 7.05, "amt": 251.18}, {"region": "B端-壹药网", "dept": "新营销部", "month": 4, "qty": 5.25, "amt": 186.82}, {"region": "B端-药师帮", "dept": "新营销部", "month": 1, "qty": 1.43, "amt": 53.18}, {"region": "B端-药师帮", "dept": "新营销部", "month": 2, "qty": 0.68, "amt": 25.19}, {"region": "B端-药师帮", "dept": "新营销部", "month": 3, "qty": 2.02, "amt": 75.53}, {"region": "B端-药师帮", "dept": "新营销部", "month": 4, "qty": 0.97, "amt": 36.37}, {"region": "C端-其他", "dept": "新营销部", "month": 1, "qty": 0.07, "amt": 2.81}, {"region": "C端-其他", "dept": "新营销部", "month": 3, "qty": 1.01, "amt": 36.83}, {"region": "C端-其他", "dept": "新营销部", "month": 4, "qty": 1.33, "amt": 47.83}, {"region": "C端-阿里", "dept": "新营销部", "month": 2, "qty": 0.07, "amt": 2.73}, {"region": "KA", "dept": "新营销部", "month": 1, "qty": 6.45, "amt": 231.09}, {"region": "KA", "dept": "新营销部", "month": 3, "qty": 1.5, "amt": 54.0}, {"region": "上海", "dept": "医院销售部", "month": 1, "qty": 0.07, "amt": 2.61}, {"region": "上海", "dept": "医院销售部", "month": 3, "qty": 0.07, "amt": 2.61}, {"region": "云南", "dept": "医院销售部", "month": 1, "qty": 0.6, "amt": 20.51}, {"region": "云南", "dept": "医院销售部", "month": 2, "qty": 0.38, "amt": 12.83}, {"region": "云南", "dept": "医院销售部", "month": 3, "qty": 0.6, "amt": 20.57}, {"region": "云南", "dept": "医院销售部", "month": 4, "qty": 0.6, "amt": 20.51}, {"region": "内蒙古", "dept": "医院销售部", "month": 1, "qty": 0.45, "amt": 14.64}, {"region": "内蒙古", "dept": "医院销售部", "month": 2, "qty": 0.38, "amt": 12.18}, {"region": "内蒙古", "dept": "医院销售部", "month": 3, "qty": 0.15, "amt": 4.83}, {"region": "内蒙古", "dept": "医院销售部", "month": 4, "qty": 0.6, "amt": 19.47}, {"region": "北京", "dept": "医院销售部", "month": 1, "qty": 0.45, "amt": 15.22}, {"region": "北京", "dept": "医院销售部", "month": 2, "qty": 0.45, "amt": 15.22}, {"region": "北京", "dept": "医院销售部", "month": 3, "qty": 1.05, "amt": 35.51}, {"region": "北京", "dept": "医院销售部", "month": 4, "qty": 0.75, "amt": 25.37}, {"region": "吉林", "dept": "医院销售部", "month": 1, "qty": 1.12, "amt": 37.84}, {"region": "吉林", "dept": "医院销售部", "month": 3, "qty": 0.38, "amt": 12.61}, {"region": "吉林", "dept": "医院销售部", "month": 4, "qty": 0.9, "amt": 30.27}, {"region": "四川", "dept": "医院销售部", "month": 1, "qty": 3.0, "amt": 103.01}, {"region": "四川", "dept": "医院销售部", "month": 2, "qty": 0.23, "amt": 7.72}, {"region": "四川", "dept": "医院销售部", "month": 3, "qty": 0.97, "amt": 33.14}, {"region": "四川", "dept": "医院销售部", "month": 4, "qty": 1.12, "amt": 38.5}, {"region": "天津", "dept": "医院销售部", "month": 3, "qty": 0.03, "amt": 1.05}, {"region": "天津", "dept": "医院销售部", "month": 4, "qty": 0.03, "amt": 0.86}, {"region": "宁夏", "dept": "医院销售部", "month": 1, "qty": 0.07, "amt": 2.55}, {"region": "宁夏", "dept": "医院销售部", "month": 3, "qty": 0.07, "amt": 2.55}, {"region": "安徽", "dept": "医院销售部", "month": 1, "qty": 0.45, "amt": 14.05}, {"region": "安徽", "dept": "医院销售部", "month": 2, "qty": 0.07, "amt": 2.66}, {"region": "安徽", "dept": "医院销售部", "month": 3, "qty": 0.11, "amt": 3.88}, {"region": "安徽", "dept": "医院销售部", "month": 4, "qty": 0.23, "amt": 7.31}, {"region": "山东", "dept": "医院销售部", "month": 1, "qty": 3.23, "amt": 109.19}, {"region": "山东", "dept": "医院销售部", "month": 2, "qty": 1.57, "amt": 52.99}, {"region": "山东", "dept": "医院销售部", "month": 3, "qty": 1.88, "amt": 63.36}, {"region": "山东", "dept": "医院销售部", "month": 4, "qty": 2.62, "amt": 88.68}, {"region": "山西", "dept": "医院销售部", "month": 1, "qty": 1.05, "amt": 34.26}, {"region": "山西", "dept": "医院销售部", "month": 2, "qty": 1.2, "amt": 39.9}, {"region": "山西", "dept": "医院销售部", "month": 3, "qty": 0.97, "amt": 32.31}, {"region": "山西", "dept": "医院销售部", "month": 4, "qty": 1.76, "amt": 58.78}, {"region": "广东", "dept": "医院销售部", "month": 1, "qty": 25.27, "amt": 874.59}, {"region": "广东", "dept": "医院销售部", "month": 2, "qty": 6.38, "amt": 218.23}, {"region": "广东", "dept": "医院销售部", "month": 3, "qty": 3.98, "amt": 136.76}, {"region": "广东", "dept": "医院销售部", "month": 4, "qty": 13.99, "amt": 482.05}, {"region": "广西", "dept": "医院销售部", "month": 1, "qty": 3.0, "amt": 100.91}, {"region": "广西", "dept": "医院销售部", "month": 2, "qty": 0.53, "amt": 17.85}, {"region": "广西", "dept": "医院销售部", "month": 3, "qty": 1.43, "amt": 48.04}, {"region": "广西", "dept": "医院销售部", "month": 4, "qty": 3.6, "amt": 121.51}, {"region": "江苏", "dept": "医院销售部", "month": 1, "qty": 4.2, "amt": 143.85}, {"region": "江苏", "dept": "医院销售部", "month": 2, "qty": 0.3, "amt": 10.42}, {"region": "江苏", "dept": "医院销售部", "month": 3, "qty": 1.12, "amt": 36.85}, {"region": "江苏", "dept": "医院销售部", "month": 4, "qty": 3.45, "amt": 117.61}, {"region": "江西", "dept": "医院销售部", "month": 1, "qty": 0.33, "amt": 11.11}, {"region": "江西", "dept": "医院销售部", "month": 2, "qty": 0.23, "amt": 7.62}, {"region": "江西", "dept": "医院销售部", "month": 4, "qty": 0.07, "amt": 2.52}, {"region": "河北", "dept": "医院销售部", "month": 1, "qty": 2.17, "amt": 73.77}, {"region": "河北", "dept": "医院销售部", "month": 2, "qty": 0.07, "amt": 2.52}, {"region": "河南", "dept": "医院销售部", "month": 1, "qty": 3.41, "amt": 114.69}, {"region": "河南", "dept": "医院销售部", "month": 2, "qty": 0.97, "amt": 32.8}, {"region": "河南", "dept": "医院销售部", "month": 3, "qty": 1.2, "amt": 40.36}, {"region": "河南", "dept": "医院销售部", "month": 4, "qty": 1.88, "amt": 63.07}, {"region": "浙江", "dept": "医院销售部", "month": 1, "qty": 4.35, "amt": 152.71}, {"region": "浙江", "dept": "医院销售部", "month": 3, "qty": 2.7, "amt": 94.79}, {"region": "浙江", "dept": "医院销售部", "month": 4, "qty": 3.3, "amt": 115.85}, {"region": "海南", "dept": "医院销售部", "month": 1, "qty": 0.38, "amt": 12.48}, {"region": "海南", "dept": "医院销售部", "month": 3, "qty": 0.07, "amt": 2.5}, {"region": "海南", "dept": "医院销售部", "month": 4, "qty": 0.07, "amt": 2.5}, {"region": "湖北", "dept": "医院销售部", "month": 1, "qty": 3.3, "amt": 111.22}, {"region": "湖北", "dept": "医院销售部", "month": 2, "qty": 0.23, "amt": 7.65}, {"region": "湖北", "dept": "医院销售部", "month": 3, "qty": 2.25, "amt": 75.91}, {"region": "湖北", "dept": "医院销售部", "month": 4, "qty": 2.4, "amt": 80.84}, {"region": "湖南", "dept": "医院销售部", "month": 1, "qty": 0.45, "amt": 15.14}, {"region": "湖南", "dept": "医院销售部", "month": 2, "qty": 0.15, "amt": 5.1}, {"region": "湖南", "dept": "医院销售部", "month": 4, "qty": 0.23, "amt": 7.65}, {"region": "福建", "dept": "医院销售部", "month": 1, "qty": 3.0, "amt": 105.29}, {"region": "福建", "dept": "医院销售部", "month": 2, "qty": 0.82, "amt": 28.96}, {"region": "福建", "dept": "医院销售部", "month": 3, "qty": 1.27, "amt": 44.75}, {"region": "福建", "dept": "医院销售部", "month": 4, "qty": 2.55, "amt": 89.5}, {"region": "西藏", "dept": "医院销售部", "month": 1, "qty": 0.01, "amt": 0.17}, {"region": "贵州", "dept": "医院销售部", "month": 1, "qty": 0.75, "amt": 24.66}, {"region": "贵州", "dept": "医院销售部", "month": 2, "qty": 0.38, "amt": 12.34}, {"region": "贵州", "dept": "医院销售部", "month": 3, "qty": 0.23, "amt": 7.46}, {"region": "贵州", "dept": "医院销售部", "month": 4, "qty": 0.38, "amt": 12.34}, {"region": "辽宁", "dept": "医院销售部", "month": 1, "qty": 1.37, "amt": 46.1}, {"region": "辽宁", "dept": "医院销售部", "month": 2, "qty": 0.53, "amt": 17.66}, {"region": "辽宁", "dept": "医院销售部", "month": 3, "qty": 0.45, "amt": 15.27}, {"region": "辽宁", "dept": "医院销售部", "month": 4, "qty": 1.35, "amt": 45.41}, {"region": "重庆", "dept": "医院销售部", "month": 1, "qty": 7.42, "amt": 260.18}, {"region": "重庆", "dept": "医院销售部", "month": 2, "qty": 2.1, "amt": 73.72}, {"region": "重庆", "dept": "医院销售部", "month": 3, "qty": 4.42, "amt": 155.04}, {"region": "重庆", "dept": "医院销售部", "month": 4, "qty": 7.12, "amt": 249.72}, {"region": "陕西", "dept": "医院销售部", "month": 1, "qty": 0.97, "amt": 33.35}, {"region": "陕西", "dept": "医院销售部", "month": 2, "qty": 0.53, "amt": 17.8}, {"region": "陕西", "dept": "医院销售部", "month": 3, "qty": 1.05, "amt": 35.84}, {"region": "陕西", "dept": "医院销售部", "month": 4, "qty": 2.1, "amt": 71.52}, {"region": "黑龙江", "dept": "医院销售部", "month": 1, "qty": 1.27, "amt": 42.74}, {"region": "黑龙江", "dept": "医院销售部", "month": 2, "qty": 0.15, "amt": 4.94}, {"region": "黑龙江", "dept": "医院销售部", "month": 3, "qty": 0.49, "amt": 16.33}, {"region": "黑龙江", "dept": "医院销售部", "month": 4, "qty": 1.27, "amt": 42.83}]};
+
+document.getElementById('dataDate').textContent = D.latestDate;
+var _dm = document.getElementById('dataDateMobile'); if(_dm) _dm.textContent = D.latestDate;
+
+const fNum = (v) => v == null ? '0.00' : Number(v).toFixed(2);
+const pct  = (a, b) => b === 0 ? null : ((a - b) / b * 100);
+
+function yoyHtml(a, b) {
+  const p = pct(a, b);
+  if (p === null) return '<span class="yoy-na">N/A</span>';
+  const sign = p >= 0 ? '+' : '';
+  const cls  = p >= 0 ? 'yoy-up' : 'yoy-down';
+  const arrow = p >= 0 ? '▲' : '▼';
+  return `<span class="${cls}">${arrow} ${sign}${p.toFixed(1)}%</span> <span style="color:#AAB2BF">同比</span>`;
+}
+
+function getYtd(dept)    { return D.ytd.find(d => d.dept === dept) || {}; }
+function getTarget(dept) { return D.target.find(d => d.dept === dept) || {}; }
+function getMonthly(dept){ return D.deptMonthly.filter(d => d.dept === dept); }
+
+function calcGap(ytd, target, m) {
+  return ytd - (target / 12 * m);
+}
+
+function progressColor(p) {
+  if (p >= 100) return '#27AE60';
+  if (p >= 80)  return '#0A85E3';
+  if (p >= 60)  return '#F5831F';
+  return '#E74C3C';
+}
+
+function progressBarHtml(ytd, target, label) {
+  if (!target) return '';
+  const p = Math.min((ytd / target * 100), 100);
+  const color = progressColor(ytd / target * 100);
+  return `
+  <div class="progress-bar-wrap">
+    <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${p.toFixed(1)}%;background:${color};"></div></div>
+    <div class="progress-bar-label"><span>${label} ${fNum(ytd)} / ${fNum(target)}</span><span style="color:${color};font-weight:600">${(ytd/target*100).toFixed(1)}%</span></div>
+  </div>`;
+}
+
+function tableProgressHtml(prog) {
+  const p = Math.min(Math.max(prog, 0), 100);
+  const color = progressColor(prog);
+  return `<div class="tbl-progress">
+    <div class="tbl-progress-bar">
+      <div class="tbl-progress-fill" style="width:${p.toFixed(1)}%;background:${color};">
+        <span class="tbl-progress-text">${p.toFixed(1)}%</span>
+      </div>
+    </div>
+  </div>`;
+}
+
+function buildKpiCards(dept) {
+  const y = getYtd(dept);
+  const t = getTarget(dept);
+  const m = D.latestMonth;
+  const gapAmt = calcGap(y.ytd2026Amt, t.targetAmt, m);
+  const gapQty = calcGap(y.ytd2026Qty, t.targetQty, m);
+  const pAmt   = t.targetAmt ? (y.ytd2026Amt / t.targetAmt * 100) : 0;
+  const pQty   = t.targetQty ? (y.ytd2026Qty / t.targetQty * 100) : 0;
+  const gapAmtColor = gapAmt >= 0 ? '#27AE60' : '#E74C3C';
+  const gapQtyColor = gapQty >= 0 ? '#27AE60' : '#E74C3C';
+
+  return `
+  <div class="kpi-row">
+    <div class="kpi-card type-blue">
+      <div class="card-icon">💰</div>
+      <div class="kpi-label">2026年累计发货金额</div>
+      <div class="kpi-value">${fNum(y.ytd2026Amt)}<span class="unit">万元</span></div>
+      <div class="kpi-sub">${yoyHtml(y.ytd2026Amt, y.ytd2025Amt)}</div>
+      ${progressBarHtml(y.ytd2026Amt, t.targetAmt, '进度')}
+    </div>
+    <div class="kpi-card type-orange">
+      <div class="card-icon">📦</div>
+      <div class="kpi-label">2026年累计发货数量</div>
+      <div class="kpi-value">${fNum(y.ytd2026Qty)}<span class="unit">万盒</span></div>
+      <div class="kpi-sub">${yoyHtml(y.ytd2026Qty, y.ytd2025Qty)}</div>
+      ${progressBarHtml(y.ytd2026Qty, t.targetQty, '进度')}
+    </div>
+    <div class="kpi-card type-teal">
+      <div class="card-icon">🎯</div>
+      <div class="kpi-label">目标进度差距（金额）</div>
+      <div class="kpi-value" style="color:${gapAmtColor}">${gapAmt>=0?'+':''}${fNum(gapAmt)}<span class="unit">万元</span></div>
+      <div class="kpi-sub">
+        <span class="badge ${pAmt>=100?'badge-green':pAmt>=80?'badge-blue':pAmt>=60?'badge-orange':'badge-red'}">
+          完成 ${pAmt.toFixed(1)}%
+        </span>
+        <span>全年目标 ${fNum(t.targetAmt)} 万</span>
+      </div>
+    </div>
+    <div class="kpi-card type-purple">
+      <div class="card-icon">📊</div>
+      <div class="kpi-label">目标进度差距（数量）</div>
+      <div class="kpi-value" style="color:${gapQtyColor}">${gapQty>=0?'+':''}${fNum(gapQty)}<span class="unit">万盒</span></div>
+      <div class="kpi-sub">
+        <span class="badge ${pQty>=100?'badge-green':pQty>=80?'badge-blue':pQty>=60?'badge-orange':'badge-red'}">
+          完成 ${pQty.toFixed(1)}%
+        </span>
+        <span>全年目标 ${fNum(t.targetQty)} 万盒</span>
+      </div>
+    </div>
+  </div>`;
+}
+
+function buildDeptCards(dept) {
+  const areas = D.areaYtd.filter(a => a.dept === dept);
+  const areaTargets = D.areaTarget.filter(a => a.dept === dept);
+  const m = D.latestMonth;
+  const typeMap = { '华东':'type-blue','华北':'type-orange','华南':'type-green','华西':'type-purple', '新营销部':'type-teal' };
+  const iconMap = { '华东':'🌊','华北':'🏔','华南':'🌴','华西':'🏜', '新营销部':'🚀' };
+
+  let cards = areas.map(a => {
+    const t = areaTargets.find(at => at.area === a.area) || {};
+    const gap = calcGap(a.ytd2026Amt, t.targetAmt || 0, m);
+    const prog = (t.targetAmt || 0) ? (a.ytd2026Amt / t.targetAmt * 100) : 0;
+    const typ  = typeMap[a.area] || 'type-blue';
+    const icon = iconMap[a.area] || '📌';
+    return `
+    <div class="kpi-card ${typ}">
+      <div class="card-icon">${icon}</div>
+      <div class="kpi-label">${a.area} · 累计金额</div>
+      <div class="kpi-value">${fNum(a.ytd2026Amt)}<span class="unit">万元</span></div>
+      <div class="kpi-sub">${yoyHtml(a.ytd2026Amt, a.ytd2025Amt)}</div>
+      ${progressBarHtml(a.ytd2026Amt, t.targetAmt, '进度')}
+    </div>`;
+  }).join('');
+
+  const gridClass = areas.length <= 4 ? 'kpi-row' : 'kpi-row-5';
+  return `<div class="${gridClass}">${cards}</div>`;
+}
+
+/* ===== CHART COLORS ===== */
+const C = {
+  blue:       '#0068C8',  blueA:   'rgba(0,104,200,0.80)',
+  blue2:      '#0A85E3',  blue2A:  'rgba(10,133,227,0.80)',
+  orange:     '#F5831F',  orangeA: 'rgba(245,131,31,0.85)',
+  green:      '#27AE60',  greenA:  'rgba(39,174,96,0.80)',
+  red:        '#E74C3C',  redA:    'rgba(231,76,60,0.80)',
+  gray:       '#95A5A6',  grayA:   'rgba(149,165,166,0.70)',
+  purple:     '#8E44AD',  purpleA: 'rgba(142,68,173,0.75)',
+  teal:       '#1ABC9C',  tealA:   'rgba(26,188,156,0.75)',
+  pieColors: [
+    'rgba(0,104,200,0.82)',
+    'rgba(245,131,31,0.82)',
+    'rgba(39,174,96,0.82)',
+    'rgba(142,68,173,0.82)',
+    'rgba(26,188,156,0.82)',
+    'rgba(231,76,60,0.82)',
+  ]
+};
+
+const chartInstances = {};
+function destroyChart(id){ if(chartInstances[id]){chartInstances[id].destroy();delete chartInstances[id];} }
+
+// 根据屏幕宽度自动适配图表字体
+const isMobile = window.innerWidth <= 768;
+const baseFontSize = isMobile ? 11 : 16;
+const defaultFont = { family:"'Microsoft YaHei','PingFang SC',sans-serif", size:baseFontSize };
+const gridColor   = 'rgba(0,0,0,0.06)';
+
+function baseOptions(unit) {
+  return {
+    responsive:true, maintainAspectRatio:false,
+    plugins:{
+      legend:{ position:'top', labels:{ font:defaultFont, padding:isMobile?8:16, usePointStyle:true, pointStyleWidth:isMobile?6:10 } },
+      tooltip:{ backgroundColor:'rgba(0,104,200,0.92)', titleFont:{...defaultFont,size:baseFontSize,weight:'bold'},
+        bodyFont:defaultFont, padding:isMobile?6:10, cornerRadius:8,
+        callbacks:{ label: ctx => ` ${ctx.dataset.label}: ${ctx.raw==null?'—':Number(ctx.raw).toFixed(2)} ${unit}` }
+      }
+    },
+    scales:{
+      x:{ grid:{color:gridColor}, ticks:{font:defaultFont} },
+      y:{ beginAtZero:true, grid:{color:gridColor}, ticks:{font:defaultFont, callback: v=>v } }
+    }
+  };
+}
+
+function createMonthlyChart(canvasId, dept, metric) {
+  destroyChart(canvasId);
+  const data = getMonthly(dept);
+  const allM = Array.from({length:12},(_,i)=>i+1);
+  const labels = allM.map(m => m+'月');
+  const v25 = allM.map(m => { const r=data.find(d=>d.year===2025&&d.month===m); return r?r[metric]:0; });
+  const v26 = allM.map(m => { const r=data.find(d=>d.year===2026&&d.month===m); return r?r[metric]:null; });
+  const unit = metric==='amt'?'万元':'万盒';
+  const ctx = document.getElementById(canvasId).getContext('2d');
+  const bar2026Color = metric === 'qty' ? C.blue2A : C.orangeA;
+  const isGrouped = metric === 'qty';
+
+  // 计算目标均值线
+  const t = getTarget(dept);
+  const annualTarget = metric === 'qty' ? t.targetQty : t.targetAmt;
+  const monthlyAvg = annualTarget ? (annualTarget / 12) : 0;
+  const avgLine = allM.map(() => monthlyAvg);
+
+  const datasets = [
+    { label:'2025年', data:v25, backgroundColor:C.grayA, borderRadius:isGrouped?8:5, barPercentage:isGrouped?0.85:0.38, categoryPercentage:isGrouped?0.98:0.7 },
+    { label:'2026年', data:v26, backgroundColor:bar2026Color, borderRadius:isGrouped?8:5, barPercentage:isGrouped?0.85:0.38, categoryPercentage:isGrouped?0.98:0.7 }
+  ];
+  if (monthlyAvg > 0) {
+    datasets.push({
+      label:'目标均值('+unit+'/月)', data:avgLine, type:'line',
+      borderColor:C.orange, borderWidth:2, borderDash:[6,4],
+      pointRadius:0, fill:false, order:0
+    });
+  }
+
+  chartInstances[canvasId] = new Chart(ctx, {
+    type:'bar',
+    data:{ labels, datasets },
+    options: {
+      ...baseOptions(unit),
+      plugins:{
+        ...baseOptions(unit).plugins,
+        legend:{ ...baseOptions(unit).plugins.legend }
+      }
+    }
+  });
+}
+
+function createCumulativeChart(canvasId, dept, metric) {
+  destroyChart(canvasId);
+  const data = getMonthly(dept);
+  const allM = Array.from({length:12},(_,i)=>i+1);
+  const labels = allM.map(m=>m+'月');
+  function cum(yr) {
+    let s=0;
+    return allM.map(m=>{
+      const r=data.find(d=>d.year===yr&&d.month===m);
+      s+=r?r[metric]:0;
+      return r?s:null;
+    });
+  }
+  const v25=cum(2025), v26=cum(2026);
+  const unit=metric==='amt'?'万元':'万盒';
+  const ctx=document.getElementById(canvasId).getContext('2d');
+
+  const datasets = [
+    { label:'2025年累计', data:v25, borderColor:C.blue2, backgroundColor:'rgba(10,133,227,0.08)',
+      fill:true, tension:0.35, pointRadius:3, pointBackgroundColor:C.blue2,
+      borderWidth:2.5 },
+    { label:'2026年累计', data:v26, borderColor:C.orange, backgroundColor:'rgba(245,131,31,0.10)',
+      fill:true, tension:0.35, pointRadius:4, pointBackgroundColor:C.orange,
+      borderWidth:2.5 }
+  ];
+
+  const t = getTarget(dept);
+  const annualTarget = metric === 'qty' ? t.targetQty : t.targetAmt;
+  if (metric === 'qty' && annualTarget) {
+    const tgtLine = allM.map(m => (annualTarget / 12 * m).toFixed(2));
+    datasets.push({
+      label:'全年目标线', data:tgtLine, type:'line',
+      borderColor:'#E74C3C', borderWidth:2, borderDash:[8,5],
+      pointRadius:0, fill:false, order:0
+    });
+  }
+
+  const gapPlugin = {
+    id: 'gapLabel',
+    afterDatasetsDraw(chart) {
+      const ds26 = chart.data.datasets[1];
+      const dsIdx26 = 1;
+      const meta26 = chart.getDatasetMeta(dsIdx26);
+      let lastIdx = -1, lastVal = 0;
+      for (let i = ds26.data.length - 1; i >= 0; i--) {
+        if (ds26.data[i] != null) { lastIdx = i; lastVal = ds26.data[i]; break; }
+      }
+      if (lastIdx < 0) return;
+      const m = lastIdx + 1;
+      const targetVal = annualTarget / 12 * m;
+      const gap = lastVal - targetVal;
+      const sign = gap >= 0 ? '+' : '';
+      const color = gap >= 0 ? '#27AE60' : '#E74C3C';
+      const pt = meta26.data[lastIdx];
+      if (!pt) return;
+      const cctx = chart.ctx;
+      cctx.save();
+      cctx.font = 'bold '+baseFontSize+'px Microsoft YaHei, sans-serif';
+      cctx.fillStyle = color;
+      cctx.textAlign = 'left';
+      cctx.textBaseline = 'bottom';
+      cctx.fillText('差距 ' + sign + gap.toFixed(2), pt.x + 8, pt.y - 4);
+      cctx.restore();
+    }
+  };
+
+  chartInstances[canvasId]=new Chart(ctx,{
+    type:'line',
+    data:{ labels, datasets },
+    options:baseOptions(unit),
+    plugins: metric === 'qty' ? [gapPlugin] : []
+  });
+}
+
+function createAreaPieChart(canvasId, dept) {
+  destroyChart(canvasId);
+  const areas = D.areaYtd.filter(a=>a.dept===dept);
+  // 新营销部按B端/C端/KA大区从地区数据汇总
+  const isQty = (dept === '新营销部');
+  let labels, values, unit;
+  if (isQty) {
+    unit = '万盒';
+    const m = D.latestMonth;
+    const regions = D.regionTarget.filter(r=>r.dept===dept);
+    const areaMap = {};
+    regions.forEach(r => {
+      if (!areaMap[r.area]) areaMap[r.area] = 0;
+      D.regionMonthly2026.filter(md=>md.region===r.region&&md.month<=m).forEach(md=>areaMap[r.area]+=md.qty);
+    });
+    labels = Object.keys(areaMap);
+    values = labels.map(l=>areaMap[l]);
+  } else {
+    unit = '万元';
+    labels = areas.map(a=>a.area);
+    values = areas.map(a=>a.ytd2026Amt);
+  }
+  const total=values.reduce((a,b)=>a+b,0);
+  const ctx=document.getElementById(canvasId).getContext('2d');
+  // 新营销部KA用灰色，B端蓝，C端橙
+  const bgColors = isQty
+    ? labels.map(l => l==='KA' ? 'rgba(149,165,166,0.82)' : l==='C端' ? 'rgba(245,131,31,0.82)' : 'rgba(0,104,200,0.82)')
+    : C.pieColors;
+  chartInstances[canvasId]=new Chart(ctx,{
+    type:'doughnut',
+    data:{ labels, datasets:[{
+      data:values, backgroundColor:bgColors, borderWidth:3, borderColor:'#fff',
+      hoverBorderWidth:0
+    }]},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      cutout:'62%',
+      layout:{ padding:{ top:30, bottom:10, left:10, right:10 } },
+      plugins:{
+        legend:{ position:'right', labels:{font:{...defaultFont,size:baseFontSize},padding:isMobile?6:14,usePointStyle:true,pointStyleWidth:isMobile?6:10} },
+        tooltip:{ backgroundColor:'rgba(0,104,200,0.92)', titleFont:{...defaultFont,size:baseFontSize,weight:'bold'},
+          bodyFont:{...defaultFont}, padding:isMobile?6:10, cornerRadius:8,
+          callbacks:{ label: ctx => ` ${ctx.label}: ${Number(ctx.raw).toFixed(2)} ${unit} (${(ctx.raw/total*100).toFixed(1)}%)` }
+        },
+        datalabels:{
+          color:'#333',
+          font:{ weight:'bold', size:isMobile?10:14, family:"'Microsoft YaHei','PingFang SC',sans-serif" },
+          backgroundColor:'rgba(255,255,255,0.8)',
+          borderRadius:4,
+          borderColor:'rgba(0,0,0,0.1)',
+          borderWidth:1,
+          padding:{ top:4, bottom:4, left:8, right:8 },
+          formatter:(value, ctx) => {
+            const pct = (value/total*100).toFixed(1);
+            return value.toFixed(1) + unit + '\n' + pct + '%';
+          },
+          textAlign:'center',
+          clip:false,
+          anchor:'end',
+          align:'end',
+          offset:8,
+          connectorColor:'#999',
+          connectorWidth:1.5,
+          connectorPadding:6,
+          display:function(ctx2){
+            return ctx2.dataset.data[ctx2.dataIndex] / total > 0.03;
+          }
+        }
+      }
+    },
+    plugins:[ChartDataLabels]
+  });
+}
+
+function createAreaBarChart(canvasId, dept) {
+  if (dept === '新营销部') {
+    createChannelYoYChart(canvasId, dept);
+    return;
+  }
+  destroyChart(canvasId);
+  const areas   = D.areaYtd.filter(a=>a.dept===dept);
+  const targets = D.areaTarget.filter(a=>a.dept===dept);
+  const labels  = areas.map(a=>a.area);
+  const ytd25   = areas.map(a=>a.ytd2025Amt);
+  const ytd26   = areas.map(a=>a.ytd2026Amt);
+  const tgtLine = labels.map(l=>{ const t=targets.find(x=>x.area===l); return t?t.targetAmt/12*D.latestMonth:0; });
+  const ctx=document.getElementById(canvasId).getContext('2d');
+  chartInstances[canvasId]=new Chart(ctx,{
+    type:'bar',
+    data:{ labels, datasets:[
+      { label:'2025年同期', data:ytd25, backgroundColor:C.grayA, borderRadius:5, barPercentage:0.28, categoryPercentage:0.75 },
+      { label:'2026年累计', data:ytd26, backgroundColor:C.blue2A, borderRadius:5, barPercentage:0.28, categoryPercentage:0.75 },
+      { label:'目标进度线', data:tgtLine, type:'line', borderColor:C.orange, borderWidth:2,
+        borderDash:[7,4], pointRadius:4, pointBackgroundColor:C.orange, fill:false }
+    ]},
+    options:baseOptions('万元')
+  });
+}
+
+function createChannelYoYChart(canvasId, dept) {
+  destroyChart(canvasId);
+  const m = D.latestMonth;
+  const regions = D.regionTarget.filter(r=>r.dept===dept);
+  const channels = [...new Set(regions.map(r=>r.area))].sort();
+  // 每个渠道的2025和2026年YTD数量
+  const qty25 = {}, qty26 = {};
+  channels.forEach(ch => {
+    qty25[ch] = 0; qty26[ch] = 0;
+    const chRegions = regions.filter(r=>r.area===ch);
+    chRegions.forEach(r => {
+      D.regionMonthly2025.filter(md=>md.region===r.region&&md.month<=m).forEach(md=>qty25[ch]+=md.qty);
+      D.regionMonthly2026.filter(md=>md.region===r.region&&md.month<=m).forEach(md=>qty26[ch]+=md.qty);
+    });
+  });
+  const chColors = {
+    'B端': { light: 'rgba(0,104,200,0.60)', solid: 'rgba(0,104,200,0.90)' },
+    'C端': { light: 'rgba(245,131,31,0.60)', solid: 'rgba(245,131,31,0.90)' },
+    'KA':  { light: 'rgba(149,165,166,0.60)', solid: 'rgba(149,165,166,0.90)' }
+  };
+  const datasets = channels.map(ch => ({
+    label: ch,
+    data: [qty25[ch], qty26[ch]],
+    backgroundColor: chColors[ch]?.solid || 'rgba(200,200,200,0.80)',
+    hoverBackgroundColor: chColors[ch]?.solid || 'rgba(200,200,200,0.95)',
+    borderRadius: 5,
+    barPercentage: 0.7,
+    categoryPercentage: 0.65
+  }));
+
+  // 柱顶标注数值和同比
+  const topLabelPlugin = {
+    id: 'topLabel',
+    afterDatasetsDraw(chart) {
+      const cctx = chart.ctx;
+      cctx.save();
+      cctx.font = 'bold '+Math.max(baseFontSize-2,10)+'px Microsoft YaHei, sans-serif';
+      cctx.textAlign = 'center';
+      cctx.textBaseline = 'bottom';
+      channels.forEach((ch, i) => {
+        const meta = chart.getDatasetMeta(i);
+        const bar25 = meta.data[0], bar26 = meta.data[1];
+        if (bar25) { cctx.fillStyle='#888'; cctx.fillText(qty25[ch].toFixed(2), bar25.x, bar25.y - 2); }
+        if (bar26) {
+          const yoy = qty25[ch] ? ((qty26[ch]-qty25[ch])/qty25[ch]*100) : 0;
+          const sign = yoy >= 0 ? '+' : '';
+          cctx.fillStyle = yoy >= 0 ? '#27AE60' : '#E74C3C';
+          cctx.fillText(`${qty26[ch].toFixed(2)} (${sign}${yoy.toFixed(1)}%)`, bar26.x, bar26.y - 2);
+        }
+      });
+      cctx.restore();
+    }
+  };
+
+  const ctx = document.getElementById(canvasId).getContext('2d');
+  chartInstances[canvasId] = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['2025年同期', '2026年累计'],
+      datasets
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: { font: { ...defaultFont, size: baseFontSize, weight: 'bold' } }
+        },
+        y: {
+          grid: { color: gridColor },
+          ticks: { font: defaultFont, callback: v => v + '万盒' },
+          beginAtZero: true
+        }
+      },
+      plugins: {
+        legend: {
+          position: 'top',
+          labels: { font: defaultFont, padding: isMobile?6:14, usePointStyle: true, pointStyleWidth: isMobile?6:10 }
+        },
+        tooltip: {
+          backgroundColor: 'rgba(0,104,200,0.92)',
+          titleFont: { ...defaultFont, size: baseFontSize, weight: 'bold' },
+          bodyFont: defaultFont, padding: isMobile?6:10, cornerRadius: 8,
+          callbacks: {
+            title: items => items[0].label,
+            label: ctx => ` ${ctx.dataset.label}: ${Number(ctx.raw).toFixed(2)} 万盒`
+          }
+        }
+      }
+    },
+    plugins: [topLabelPlugin]
+  });
+}
+
+/* ===== AREA COLOR CLASS ===== */
+function areaTagClass(area) {
+  if(area.includes('华东')) return 'area-huadong';
+  if(area.includes('华北')) return 'area-huabei';
+  if(area.includes('华南')) return 'area-huanan';
+  if(area.includes('华西')) return 'area-huaxi';
+  if(area.includes('新营销')) return 'area-xinyx';
+  return 'area-default';
+}
+
+function buildRegionTable(dept) {
+  const m = D.latestMonth;
+  if (dept === '全部') {
+    // 总览页：按部门汇总，用数量(万盒)
+    const depts = D.target.filter(t=>t.dept!=='全部');
+    const colHeaders = ['部门','','全年目标','累计完成','同比增长率','目标差距','完成进度'];
+    let rows = depts.map(t => {
+      const cum26 = D.deptMonthly.filter(d=>d.dept===t.dept&&d.year===D.latestYear&&d.month<=m).reduce((s,d)=>s+d.qty,0);
+      const cum25 = D.deptMonthly.filter(d=>d.dept===t.dept&&d.year===2025&&d.month<=m).reduce((s,d)=>s+d.qty,0);
+      const target = t.targetQty;
+      const gap   = calcGap(cum26, target, m);
+      const prog  = target ? (cum26/target*100) : 0;
+      const yoyP  = cum25>0 ? ((cum26-cum25)/cum25*100) : null;
+      const yoyCls= yoyP===null?'badge-gray':yoyP>=0?'badge-red':'badge-green';
+      const yoyTxt= yoyP===null?'N/A':(yoyP>=0?'+':'')+yoyP.toFixed(1)+'%';
+      return `<tr>
+        <td class="tw-dept" style="font-weight:500">${t.dept}</td>
+        <td class="tw-empty"></td>
+        <td class="tw-num">${fNum(target)}</td>
+        <td class="tw-num" style="font-weight:600;color:#0068C8">${fNum(cum26)}</td>
+        <td class="tw-badge"><span class="badge ${yoyCls}">${yoyTxt}</span></td>
+        <td class="tw-gap"><span style="color:${gap>=0?'#27AE60':'#E74C3C'};font-weight:600">${gap>=0?'+':''}${fNum(gap)}</span></td>
+        <td class="tw-prog">${tableProgressHtml(prog)}</td>
+      </tr>`;
+    }).join('');
+    return `<div class="table-box">
+      <h3>各部门目标完成明细</h3>
+      <div class="table-scroll-wrap">
+      <table>
+        <thead><tr>
+          <th class="tw-dept">部门</th>
+          <th class="tw-empty"></th>
+          <th class="tw-num">目标(万盒)</th>
+          <th class="tw-num">完成(万盒)</th>
+          <th class="tw-badge">同比增长</th>
+          <th class="tw-gap">差距(万盒)</th>
+          <th class="tw-prog">进度</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      </div>
+    </div>`;
+  }
+  // 非总览：按地区明细
+  const regions = D.regionTarget.filter(r=>r.dept===dept);
+
+  if (dept === '医院销售部') {
+    // 医院销售部：按数量(万盒)统计，排名降序，显示负责人
+    // 月度列：2026M1 ~ 2026M当月
+    const monthCols = Array.from({length: m}, (_, i) => i + 1);
+    let regionData = regions.map(r => {
+      let cum25=0; D.regionMonthly2025.filter(md=>md.region===r.region&&md.month<=m).forEach(md=>cum25+=md.qty);
+      let cum26=0; D.regionMonthly2026.filter(md=>md.region===r.region&&md.month<=m).forEach(md=>cum26+=md.qty);
+      // 各月销量
+      const monthlyQty = monthCols.map(mo => {
+        const md = D.regionMonthly2026.find(d=>d.region===r.region&&d.month===mo);
+        return md ? md.qty : 0;
+      });
+      return { ...r, cum25, cum26, monthlyQty };
+    });
+    // 按销售量降序排列
+    regionData.sort((a, b) => b.cum26 - a.cum26);
+    const medals = ['🥇','🥈','🥉'];
+    // 月度列表头
+    const monthHeaders = monthCols.map(mo => `<th class="tw-num">2026M${mo}</th>`).join('');
+    let rows = regionData.map((r, idx) => {
+      const rank = idx + 1;
+      const gap   = calcGap(r.cum26, r.targetQty, m);
+      const prog  = r.targetQty ? (r.cum26/r.targetQty*100) : 0;
+      const yoyP  = r.cum25>0 ? ((r.cum26-r.cum25)/r.cum25*100) : null;
+      const yoyCls= yoyP===null?'badge-gray':yoyP>=0?'badge-red':'badge-green';
+      const yoyTxt= yoyP===null?'N/A':(yoyP>=0?'+':'')+yoyP.toFixed(1)+'%';
+      const rankDisplay = rank <= 3 ? medals[rank-1] : rank;
+      const monthlyCells = r.monthlyQty.map(v => `<td class="tw-num">${v>0?fNum(v):'-'}</td>`).join('');
+      return `<tr>
+        <td class="tw-rank">${rankDisplay}</td>
+        <td class="tw-region">${r.region}</td>
+        <td class="tw-owner">${r.owner || '-'}</td>
+        <td class="tw-num">${fNum(r.targetQty)}</td>
+        <td class="tw-num" style="font-weight:600;color:#0068C8">${fNum(r.cum26)}</td>
+        <td class="tw-badge"><span class="badge ${yoyCls}">${yoyTxt}</span></td>
+        <td class="tw-gap"><span style="color:${gap>=0?'#27AE60':'#E74C3C'};font-weight:600">${gap>=0?'+':''}${fNum(gap)}</span></td>
+        <td class="tw-prog">${tableProgressHtml(prog)}</td>
+        ${monthlyCells}
+      </tr>`;
+    }).join('');
+    return `<div class="table-box">
+      <h3>各地区目标完成明细（${D.latestYear}年1-${m}月累计·数量万盒）</h3>
+      <div class="table-scroll-wrap">
+      <table>
+        <thead><tr>
+          <th class="tw-rank">排名</th>
+          <th class="tw-region">地区</th>
+          <th class="tw-owner">负责人</th>
+          <th class="tw-num">目标(万盒)</th>
+          <th class="tw-num">完成(万盒)</th>
+          <th class="tw-badge">同比</th>
+          <th class="tw-gap">差距</th>
+          <th class="tw-prog">进度</th>
+          ${monthHeaders}
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      </div>
+    </div>`;
+  }
+
+  // 新营销部：按数量统计，显示地区负责人
+  // 月度列：2026M1月 ~ 2026M当月
+  const monthCols = Array.from({length: m}, (_, i) => i + 1);
+  const monthHeaders = monthCols.map(mo => `<th class="tw-num">2026M${mo}</th>`).join('');
+  let rows = regions.map(r => {
+    let cum25=0; D.regionMonthly2025.filter(md=>md.region===r.region&&md.month<=m).forEach(md=>cum25+=md.qty);
+    let cum26=0; D.regionMonthly2026.filter(md=>md.region===r.region&&md.month<=m).forEach(md=>cum26+=md.qty);
+    const gap   = calcGap(cum26, r.targetQty, m);
+    const prog  = r.targetQty ? (cum26/r.targetQty*100) : 0;
+    const yoyP  = cum25>0 ? ((cum26-cum25)/cum25*100) : null;
+    const yoyCls= yoyP===null?'badge-gray':yoyP>=0?'badge-red':'badge-green';
+    const yoyTxt= yoyP===null?'N/A':(yoyP>=0?'+':'')+yoyP.toFixed(1)+'%';
+    const monthlyCells = monthCols.map(mo => {
+      const md = D.regionMonthly2026.find(d=>d.region===r.region&&d.month===mo);
+      const v = md ? md.qty : 0;
+      return `<td class="tw-num">${v>0?fNum(v):'-'}</td>`;
+    }).join('');
+    return `<tr>
+      <td class="tw-region">${r.region}</td>
+      <td class="tw-owner">${r.owner || '-'}</td>
+      <td class="tw-channel"><span class="area-tag ${areaTagClass(r.area)}">${r.area}</span></td>
+      <td class="tw-num">${fNum(r.targetQty)}</td>
+      <td class="tw-num" style="font-weight:600;color:#0068C8">${fNum(cum26)}</td>
+      <td class="tw-badge"><span class="badge ${yoyCls}">${yoyTxt}</span></td>
+      <td class="tw-gap"><span style="color:${gap>=0?'#27AE60':'#E74C3C'};font-weight:600">${gap>=0?'+':''}${fNum(gap)}</span></td>
+      <td class="tw-prog">${tableProgressHtml(prog)}</td>
+      ${monthlyCells}
+    </tr>`;
+  }).join('');
+  return `<div class="table-box">
+    <h3>各地区目标完成明细（${D.latestYear}年1-${m}月累计·数量万盒）</h3>
+    <div class="table-scroll-wrap">
+    <table>
+      <thead><tr>
+        <th class="tw-region">地区</th>
+        <th class="tw-owner">负责人</th>
+        <th class="tw-channel">渠道</th>
+        <th class="tw-num">目标(万盒)</th>
+        <th class="tw-num">完成(万盒)</th>
+        <th class="tw-badge">同比</th>
+        <th class="tw-gap">差距</th>
+        <th class="tw-prog">进度</th>
+        ${monthHeaders}
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    </div>
+  </div>`;
+}
+
+function buildDeptPage(dept, pageId) {
+  const container = document.getElementById(pageId);
+  const hasAreas  = D.areaYtd.filter(a=>a.dept===dept).length > 0;
+  const areaLabel = dept==='医院销售部' ? '大区' : '渠道';
+  const uid       = dept==='全部'?'ov':dept==='医院销售部'?'hosp':'mkt';
+  let html = '';
+
+  html += `<div class="section-title">核心指标总览</div>`;
+  html += buildKpiCards(dept);
+
+  if (dept === '全部') {
+    html += buildRegionTable(dept);
+  }
+
+  // 医院销售部和新营销部不显示渠道/大区维度KPI
+  if (hasAreas && dept === '总览') {
+    // 仅总览页可展示（当前总览页用部门表格替代）
+  }
+
+  html += `<div class="section-title">月度发货趋势对比</div>`;
+  html += `<div class="chart-row">
+    <div class="chart-box"><h3>月度发货数量对比（万盒）</h3><div style="height:300px"><canvas id="${uid}-qty-bar"></canvas></div></div>
+    <div class="chart-box"><h3>累计发货数量趋势（万盒）</h3><div style="height:300px"><canvas id="${uid}-qty-cum"></canvas></div></div>
+  </div>`;
+
+
+  // 大区/渠道维度分析图表
+  if (hasAreas && dept !== '医院销售部') {
+    const chartTitle = dept === '新营销部'
+      ? '各渠道销量占比（万盒）'
+      : `各${areaLabel}累计金额占比（万元）`;
+    const barTitle = dept === '新营销部'
+      ? '各渠道销量同比情况'
+      : `各${areaLabel}发货金额 vs 目标进度线`;
+    html += `<div class="section-title">${areaLabel}维度分析</div>`;
+    html += `<div class="chart-row">
+      <div class="chart-box"><h3>${chartTitle}</h3><div style="height:300px"><canvas id="${uid}-pie"></canvas></div></div>
+      <div class="chart-box"><h3>${barTitle}</h3><div style="height:300px"><canvas id="${uid}-area-bar"></canvas></div></div>
+    </div>`;
+  }
+
+  if (dept !== '全部') {
+    html += buildRegionTable(dept);
+  }
+
+  container.innerHTML = html;
+
+  setTimeout(() => {
+    createMonthlyChart(uid+'-qty-bar', dept, 'qty');
+    createCumulativeChart(uid+'-qty-cum', dept, 'qty');
+    if(hasAreas && dept !== '医院销售部'){ createAreaPieChart(uid+'-pie',dept); createAreaBarChart(uid+'-area-bar',dept); }
+  }, 50);
+}
+
+function switchPage(page) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  const map = { overview:['page-overview',0,'全部'], hospital:['page-hospital',1,'医院销售部'], marketing:['page-marketing',2,'新营销部'] };
+  const [pid, idx, dept] = map[page];
+  document.getElementById(pid).classList.add('active');
+  document.querySelectorAll('.nav-btn')[idx].classList.add('active');
+  buildDeptPage(dept, pid);
+}
+
+switchPage('overview');
+
+// Simple toast notification
+function showToast(msg, type) {
+  let existing = document.getElementById('_toast');
+  if (existing) existing.remove();
+  const t = document.createElement('div');
+  t.id = '_toast';
+  t.style.cssText = 'position:fixed;top:100px;left:50%;transform:translateX(-50%);' +
+    'padding:10px 24px;border-radius:10px;font-size:14px;z-index:99999;' +
+    'box-shadow:0 4px 20px rgba(0,0,0,.15);transition:opacity .4s;';
+  if (type === 'ok') { t.style.background = '#27AE60'; t.style.color = '#fff'; }
+  else { t.style.background = '#0068C8'; t.style.color = '#fff'; }
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 400); }, 2000);
+}
+
+
+/* ===== AUTO SCALE for embedded/iframe display ===== */
+/* Mobile-first: if width <= 768, skip scaling and use responsive CSS layout */
+(function(){
+  var REF_W = 1440;
+  function applyScale() {
+    var w = window.innerWidth || document.documentElement.clientWidth || 960;
+    if(w <= 768) {
+      /* Mobile: remove any scaling, let CSS media queries handle layout */
+      document.body.style.width = '';
+      document.body.style.transform = '';
+      return;
+    }
+    var scale = Math.min(1, w / REF_W);
+    if(scale < 1) {
+      document.body.style.transformOrigin = 'top left';
+      document.body.style.width = (100/scale) + '%';
+      document.body.style.transform = 'scale(' + scale + ')';
+    } else {
+      document.body.style.width = '';
+      document.body.style.transform = '';
+    }
+  }
+  applyScale();
+  window.addEventListener('resize', applyScale);
+})();
+</script>
+</body>
+</html>
