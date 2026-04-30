@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>品牌品-骨松组发货看板</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:#f0f2f5;color:#333;line-height:1.6}
+.container{max-width:1400px;margin:0 auto;padding:15px}
+.header{background:#0078d4;color:#fff;padding:20px 24px;border-radius:12px;margin-bottom:15px;box-shadow:0 4px 20px rgba(0,120,212,0.2)}
+.header h1{font-size:24px;font-weight:600;margin-bottom:6px;text-align:left}
+.subtitle{font-size:13px;opacity:0.9;text-align:left}
+.main-slicer{background:#fff;padding:12px 20px;border-radius:12px;margin-bottom:15px;box-shadow:0 2px 8px rgba(0,0,0,0.06)}
+.slicer-title{font-size:13px;color:#666;margin-bottom:10px;font-weight:500}
+.slicer-group{display:flex;gap:10px;flex-wrap:wrap}
+.slicer-btn{padding:10px 28px;border:2px solid #e2e8f0;background:#fff;border-radius:8px;cursor:pointer;font-size:14px;font-weight:500;color:#475569;transition:all 0.2s}
+.slicer-btn:hover{border-color:#3b82f6;color:#3b82f6}
+.slicer-btn.active{background:#3b82f6;color:#fff;border-color:#3b82f6;box-shadow:0 4px 12px rgba(59,130,246,0.3)}
+.sub-slicer{background:#f8fafc;padding:10px 16px;border-radius:8px;margin-bottom:12px;border:1px solid #e2e8f0}
+.sub-slicer .slicer-btn{padding:7px 18px;font-size:13px}
+.page-content{display:none;background:#fff;border-radius:12px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,0.06)}
+.page-content.active{display:block}
+.tab-nav{display:flex;border-bottom:2px solid #e2e8f0;margin-bottom:16px;background:#f8fafc;border-radius:8px 8px 0 0;padding:4px}
+.tab-btn{flex:1;padding:10px 16px;border:none;background:transparent;cursor:pointer;font-size:14px;font-weight:500;color:#64748b;transition:all 0.2s;border-radius:6px}
+.tab-btn:hover{color:#3b82f6;background:#f1f5f9}
+.tab-btn.active{color:#fff;background:#3b82f6;box-shadow:0 2px 8px rgba(59,130,246,0.3)}
+.tab-content{display:none;padding:12px 0}
+.tab-content.active{display:block}
+.kpi-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:20px}
+.kpi-card{background:#fff;padding:18px 16px;border-radius:10px;border:1px solid #e2e8f0;text-align:center;transition:all 0.3s}
+.kpi-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.08)}
+.kpi-label{font-size:12px;color:#64748b;margin-bottom:8px;font-weight:400}
+.kpi-value{font-size:22px;font-weight:600;color:#1e293b;margin-bottom:4px}
+.kpi-unit{font-size:13px;color:#64748b;margin-left:3px;font-weight:400}
+.kpi-change{font-size:13px;font-weight:500;display:inline-flex;align-items:center;gap:4px}
+.kpi-change.up{color:#16a34a}
+.kpi-change.down{color:#dc2626}
+.kpi-change.neutral{color:#64748b}
+.kpi-progress{background:#e2e8f0;height:6px;border-radius:3px;margin-top:10px;overflow:hidden}
+.kpi-progress-bar{height:100%;background:#3b82f6;border-radius:3px;transition:width 0.5s}
+.chart-container{background:#fff;border-radius:12px;padding:16px;margin-bottom:16px;border:1px solid #e2e8f0}
+.chart-title{font-size:15px;font-weight:600;color:#1e293b;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #f1f5f9}
+.chart-box{height:320px}
+.table-container{background:#fff;border-radius:12px;overflow:hidden;border:1px solid #e2e8f0;margin-top:12px}
+.table-header{display:grid;grid-template-columns:50px 1fr 100px 100px 90px 80px;background:#0078d4;color:#fff;padding:12px 14px;font-size:12px;font-weight:600;text-align:center}
+.table-row{display:grid;grid-template-columns:50px 1fr 100px 100px 90px 80px;padding:10px 14px;border-bottom:1px solid #f1f5f9;align-items:center;text-align:center;transition:background 0.2s}
+.table-row:hover{background:#f8fafc}
+.table-row:nth-child(even){background:#fafbfc}
+.rank{font-weight:700;color:#64748b;font-size:12px}
+.rank.top1{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;background:#ffc107;color:#fff;border-radius:50%;font-size:14px;font-weight:700}
+.rank.top2{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;background:#9e9e9e;color:#fff;border-radius:50%;font-size:14px;font-weight:700}
+.rank.top3{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;background:#a67c52;color:#fff;border-radius:50%;font-size:14px;font-weight:700}
+.region{text-align:left;font-weight:500;color:#1e293b}
+.person{font-size:10px;color:#64748b;margin-top:2px}
+.target{color:#475569;font-size:13px}
+.actual{font-weight:600;color:#1e40af;font-size:13px}
+.pct-bar{display:flex;align-items:center;gap:6px;justify-content:flex-start}
+.pct-bar-inner{height:8px;border-radius:4px;background:#3b82f6;min-width:3px;transition:width 0.5s}
+.pct-text{font-size:10px;color:#1e40af;font-weight:600;white-space:nowrap}
+.yoy{font-size:11px;font-weight:600;white-space:nowrap}
+.yoy.up{color:#16a34a}
+.yoy.down{color:#dc2626}
+.section-title{font-size:15px;font-weight:600;color:#1e293b;margin:16px 0 12px;padding-left:10px;border-left:4px solid #3b82f6}
+@media(max-width:1200px){.kpi-grid{grid-template-columns:repeat(3,1fr);gap:10px}.kpi-card{padding:16px 14px}.kpi-value{font-size:22px}}
+@media(max-width:768px){.container{padding:10px}.header{padding:16px 18px}.header h1{font-size:18px}.subtitle{font-size:11px}.slicer-btn{padding:8px 20px;font-size:13px}.kpi-grid{grid-template-columns:repeat(2,1fr);gap:10px}.kpi-card{padding:14px 12px}.kpi-value{font-size:20px}.kpi-label{font-size:11px}.kpi-unit{font-size:12px}.chart-box{height:280px}.chart-title{font-size:13px}.table-container{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -10px;padding:0 10px}.table-header,.table-row{grid-template-columns:32px 1fr 55px 55px 52px 48px;font-size:10px;padding:7px 3px;min-width:340px}.table-header div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.region{display:flex;align-items:center;gap:4px}.person{margin-top:0;white-space:nowrap}.target,.actual{font-size:10px}.yoy{font-size:9px}.pct-text{font-size:9px}.tab-btn{padding:8px 12px;font-size:12px}}
+@media(max-width:480px){.kpi-grid{grid-template-columns:repeat(2,1fr);gap:8px}.kpi-card{padding:12px 10px}.kpi-value{font-size:18px}.slicer-group{gap:8px}.slicer-btn{padding:6px 16px;font-size:12px}.chart-box{height:250px}}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="header">
+<h1>品牌品-骨松组发货看板</h1>
+<div class="subtitle" id="subtitle">数据截止2026年04月29日 | 单位：万元 / 万盒 | 当前应完成进度：<span id="expected-progress">32.6%</span></div>
+</div>
+<div class="main-slicer">
+<div class="slicer-title">选择视图</div>
+<div class="slicer-group">
+<button class="slicer-btn active" data-page="total" onclick="switchMainPage('total')">
+<svg width="16" height="16" viewBox="0 0 24 24" style="margin-right:6px;vertical-align:middle"><rect x="3" y="3" width="7" height="7" rx="1.5" fill="#6366f1"/><rect x="14" y="3" width="7" height="7" rx="1.5" fill="#6366f1"/><rect x="3" y="14" width="7" height="7" rx="1.5" fill="#6366f1"/><rect x="14" y="14" width="7" height="7" rx="1.5" fill="#6366f1"/></svg>总体
+</button>
+<button class="slicer-btn" data-page="liqing" onclick="switchMainPage('liqing')">
+<svg width="16" height="16" viewBox="0 0 24 24" style="margin-right:6px;vertical-align:middle"><rect x="7" y="4" width="10" height="16" rx="5" fill="#10b981"/><rect x="7" y="4" width="10" height="8" rx="5" fill="#34d399"/><rect x="11" y="8" width="2" height="8" rx="1" fill="#fff"/></svg>立庆
+</button>
+<button class="slicer-btn" data-page="gailisheng" onclick="switchMainPage('gailisheng')">
+<svg width="16" height="16" viewBox="0 0 24 24" style="margin-right:6px;vertical-align:middle"><rect x="5" y="8" width="14" height="8" rx="4" fill="#f59e0b"/><rect x="5" y="8" width="14" height="4" rx="4" fill="#fbbf24"/><rect x="11" y="10" width="2" height="4" rx="1" fill="#fff"/></svg>盖立升
+</button>
+</div>
+</div>
+
+<!-- 总体页面 -->
+<div class="page-content active" id="page-total">
+<div class="kpi-grid" id="kpi-total"></div>
+<div class="chart-container">
+<div class="chart-title">每月发货金额趋势</div>
+<div class="chart-box" id="chart-total"></div>
+</div>
+</div>
+
+<!-- 立庆页面 -->
+<div class="page-content" id="page-liqing">
+<div class="sub-slicer">
+<div class="slicer-title">数据维度</div>
+<div class="slicer-group">
+<button class="slicer-btn active" data-metric="jine" onclick="switchLiqingMetric('jine')">金额</button>
+<button class="slicer-btn" data-metric="sl" onclick="switchLiqingMetric('sl')">数量</button>
+</div>
+</div>
+<div class="tab-nav">
+<button class="tab-btn active" onclick="switchLiqingTab('total')">总体</button>
+<button class="tab-btn" onclick="switchLiqingTab('hospital')">医院销售部</button>
+<button class="tab-btn" onclick="switchLiqingTab('xin')">新营销部</button>
+</div>
+<div class="tab-content active" id="liqing-tab-total">
+<div class="kpi-grid" id="kpi-liqing-total"></div>
+<div class="chart-container">
+<div class="chart-title">月度<span class="liqing-metric-name">金额</span>趋势</div>
+<div class="chart-box" id="chart-liqing-total"></div>
+</div>
+</div>
+<div class="tab-content" id="liqing-tab-hospital">
+<div class="kpi-grid" id="kpi-liqing-hospital"></div>
+<div class="chart-container">
+<div class="chart-title">医院销售部月度<span class="liqing-metric-name">金额</span>趋势</div>
+<div class="chart-box" id="chart-liqing-hospital"></div>
+</div>
+<div class="section-title">地区销售进度</div>
+<div class="table-container">
+<div class="table-header">
+<div>排名</div><div style="text-align:left">地区/责任人</div>
+<div>26年目标(万元)</div><div>当年完成(万元)</div><div>完成进度</div><div>同比</div>
+</div>
+<div id="table-liqing-hospital"></div>
+</div>
+</div>
+<div class="tab-content" id="liqing-tab-xin">
+<div class="kpi-grid" id="kpi-liqing-xin"></div>
+<div class="chart-container">
+<div class="chart-title">新营销部月度<span class="liqing-metric-name">金额</span>趋势</div>
+<div class="chart-box" id="chart-liqing-xin"></div>
+</div>
+<div class="section-title">渠道销售进度</div>
+<div class="table-container">
+<div class="table-header">
+<div>排名</div><div style="text-align:left">渠道/责任人</div>
+<div>26年目标(万元)</div><div>当年完成(万元)</div><div>完成进度</div><div>同比</div>
+</div>
+<div id="table-liqing-xin"></div>
+</div>
+</div>
+</div>
+
+<!-- 盖立升页面 -->
+<div class="page-content" id="page-gailisheng">
+<div class="sub-slicer">
+<div class="slicer-title">数据维度</div>
+<div class="slicer-group">
+<button class="slicer-btn active" data-metric="jine" onclick="switchGailiMetric('jine')">金额</button>
+<button class="slicer-btn" data-metric="sl" onclick="switchGailiMetric('sl')">数量</button>
+</div>
+</div>
+<div class="tab-nav">
+<button class="tab-btn active" onclick="switchGailiTab('total')">总体</button>
+<button class="tab-btn" onclick="switchGailiTab('hospital')">医院销售部</button>
+<button class="tab-btn" onclick="switchGailiTab('xin')">新营销部</button>
+</div>
+<div class="tab-content active" id="gaili-tab-total">
+<div class="kpi-grid" id="kpi-gaili-total"></div>
+<div class="chart-container">
+<div class="chart-title">月度<span class="gaili-metric-name">金额</span>趋势</div>
+<div class="chart-box" id="chart-gaili-total"></div>
+</div>
+</div>
+<div class="tab-content" id="gaili-tab-hospital">
+<div class="kpi-grid" id="kpi-gaili-hospital"></div>
+<div class="chart-container">
+<div class="chart-title">医院销售部月度<span class="gaili-metric-name">金额</span>趋势</div>
+<div class="chart-box" id="chart-gaili-hospital"></div>
+</div>
+<div class="section-title">地区销售进度</div>
+<div class="table-container">
+<div class="table-header">
+<div>排名</div><div style="text-align:left">地区/责任人</div>
+<div>26年目标(万元)</div><div>当年完成(万元)</div><div>完成进度</div><div>同比</div>
+</div>
+<div id="table-gaili-hospital"></div>
+</div>
+</div>
+<div class="tab-content" id="gaili-tab-xin">
+<div class="kpi-grid" id="kpi-gaili-xin"></div>
+<div class="chart-container">
+<div class="chart-title">新营销部月度<span class="gaili-metric-name">金额</span>趋势</div>
+<div class="chart-box" id="chart-gaili-xin"></div>
+</div>
+</div>
+</div>
+</div>
+
+<script>
+const monthlyRaw = {
+"2025-1-立庆-医院销售部": {jine:1683.13,sl:69.21},
+"2025-1-立庆-新营销部": {jine:282.76,sl:11.74},
+"2025-1-盖立升-医院销售部": {jine:91.16,sl:5.13},
+"2025-2-立庆-医院销售部": {jine:480.62,sl:21.48},
+"2025-2-立庆-新营销部": {jine:20.19,sl:1.18},
+"2025-2-盖立升-医院销售部": {jine:60.87,sl:3.33},
+"2025-2-盖立升-新营销部": {jine:0.12,sl:0.03},
+"2025-3-立庆-医院销售部": {jine:529.55,sl:23.4},
+"2025-3-立庆-新营销部": {jine:205.03,sl:12.1},
+"2025-3-盖立升-医院销售部": {jine:29.98,sl:3.78},
+"2025-4-立庆-医院销售部": {jine:859.85,sl:44.94},
+"2025-4-立庆-新营销部": {jine:32.6,sl:1.94},
+"2025-4-盖立升-医院销售部": {jine:59.96,sl:4.14},
+"2025-4-盖立升-新营销部": {jine:0.14,sl:0.03},
+"2025-5-立庆-医院销售部": {jine:670.39,sl:32.09},
+"2025-5-立庆-新营销部": {jine:14.82,sl:0.9},
+"2025-5-盖立升-医院销售部": {jine:61.04,sl:4.68},
+"2025-5-盖立升-新营销部": {jine:0.4,sl:0.09},
+"2025-6-立庆-医院销售部": {jine:957.5,sl:42.34},
+"2025-6-立庆-新营销部": {jine:42.39,sl:2.48},
+"2025-6-盖立升-医院销售部": {jine:67.91,sl:5.18},
+"2025-7-立庆-医院销售部": {jine:440.49,sl:23.46},
+"2025-7-立庆-新营销部": {jine:12.85,sl:0.76},
+"2025-7-盖立升-医院销售部": {jine:53.64,sl:4.05},
+"2025-7-盖立升-新营销部": {jine:0.2,sl:0.04},
+"2025-8-立庆-医院销售部": {jine:450.87,sl:23.32},
+"2025-8-立庆-新营销部": {jine:67.15,sl:3.77},
+"2025-8-盖立升-医院销售部": {jine:61.71,sl:4.0},
+"2025-9-立庆-医院销售部": {jine:831.01,sl:40.66},
+"2025-9-立庆-新营销部": {jine:51.27,sl:3.06},
+"2025-9-盖立升-医院销售部": {jine:80.48,sl:5.76},
+"2025-9-盖立升-新营销部": {jine:0.4,sl:0.09},
+"2025-10-立庆-医院销售部": {jine:559.02,sl:27.25},
+"2025-10-立庆-新营销部": {jine:33.46,sl:2.2},
+"2025-10-盖立升-医院销售部": {jine:30.99,sl:2.3},
+"2025-11-立庆-医院销售部": {jine:642.47,sl:32.79},
+"2025-11-立庆-新营销部": {jine:84.85,sl:5.04},
+"2025-11-盖立升-医院销售部": {jine:63.28,sl:4.82},
+"2025-11-盖立升-新营销部": {jine:0.4,sl:0.09},
+"2025-12-立庆-医院销售部": {jine:723.79,sl:36.69},
+"2025-12-立庆-新营销部": {jine:29.93,sl:1.8},
+"2025-12-盖立升-医院销售部": {jine:75.77,sl:4.14},
+"2026-1-立庆-医院销售部": {jine:1165.39,sl:68.27},
+"2026-1-立庆-新营销部": {jine:95.68,sl:5.62},
+"2026-1-盖立升-医院销售部": {jine:82.11,sl:7.24},
+"2026-2-立庆-医院销售部": {jine:322.22,sl:19.02},
+"2026-2-立庆-新营销部": {jine:97.84,sl:5.72},
+"2026-2-盖立升-医院销售部": {jine:52.99,sl:2.92},
+"2026-3-立庆-医院销售部": {jine:387.29,sl:23.17},
+"2026-3-立庆-新营销部": {jine:181.57,sl:10.48},
+"2026-3-盖立升-医院销售部": {jine:38.97,sl:2.12},
+"2026-4-立庆-医院销售部": {jine:975.61,sl:57.64},
+"2026-4-立庆-新营销部": {jine:36.86,sl:2.2},
+"2026-4-盖立升-医院销售部": {jine:72.95,sl:5.4},
+"2026-4-盖立升-新营销部": {jine:0.2,sl:0.04}
+};
+
+const target2026 = {
+liqing:{
+hospital:{
+"上海":{jine:336.0,sl:20.0,person:"高文龙"},
+"云南":{jine:100.8,sl:6.0,person:"周辉"},
+"内蒙古":{jine:16.8,sl:1.0,person:"卿毅"},
+"北京":{jine:84.0,sl:5.0,person:"卢俊"},
+"吉林":{jine:33.6,sl:2.0,person:"卿毅"},
+"四川":{jine:504.0,sl:30.0,person:"薛文"},
+"天津":{jine:67.2,sl:4.0,person:"卢俊"},
+"宁夏":{jine:16.8,sl:1.0,person:"耿福林"},
+"安徽":{jine:302.4,sl:18.0,person:"汪腾飞"},
+"山东":{jine:252.0,sl:15.0,person:"卿毅"},
+"山西":{jine:252.0,sl:15.0,person:"卿毅"},
+"广东":{jine:252.0,sl:15.0,person:"许占海"},
+"广西":{jine:235.2,sl:14.0,person:"罗险峰"},
+"新疆":{jine:252.0,sl:15.0,person:"耿福林"},
+"江苏":{jine:1260.0,sl:75.0,person:"杨海波"},
+"江西":{jine:151.2,sl:9.0,person:"罗险峰"},
+"河北":{jine:319.2,sl:19.0,person:"卢俊"},
+"河南":{jine:924.0,sl:55.0,person:"黄彩西"},
+"浙江":{jine:319.2,sl:19.0,person:"吴光建"},
+"海南":{jine:16.8,sl:1.0,person:"许占海"},
+"湖北":{jine:336.0,sl:20.0,person:"陈辉"},
+"湖南":{jine:252.0,sl:15.0,person:"罗险峰"},
+"甘肃":{jine:84.0,sl:5.0,person:"耿福林"},
+"福建":{jine:67.2,sl:4.0,person:"许占海"},
+"贵州":{jine:100.8,sl:6.0,person:"周辉"},
+"辽宁":{jine:33.6,sl:2.0,person:"卿毅"},
+"重庆":{jine:1344.0,sl:80.0,person:"薛文"},
+"陕西":{jine:756.0,sl:45.0,person:"耿福林"},
+"青海":{jine:16.8,sl:1.0,person:"耿福林"},
+"黑龙江":{jine:50.4,sl:3.0,person:"卿毅"}
+},
+xin:{
+"B端-壹药网":{jine:924.55,sl:55.0,person:"庞大智"},
+"B端-药师帮":{jine:168.1,sl:10.0,person:"庞大智"},
+"C端-京东":{jine:117.67,sl:7.0,person:"贠嘉宏"},
+"C端-阿里":{jine:100.86,sl:6.0,person:"贠嘉宏"},
+"KA":{jine:1042.22,sl:62.0,person:"张宇航"}
+}
+},
+gailisheng:{
+hospital:{
+"云南":{jine:14.1,sl:1.0,person:"周辉"},
+"北京":{jine:141.0,sl:10.0,person:"卢俊"},
+"四川":{jine:14.1,sl:1.0,person:"薛文"},
+"天津":{jine:56.4,sl:4.0,person:"卢俊"},
+"广西":{jine:28.2,sl:2.0,person:"罗险峰"},
+"浙江":{jine:352.5,sl:25.0,person:"吴光建"},
+"湖北":{jine:70.5,sl:5.0,person:"陈辉"},
+"贵州":{jine:14.1,sl:1.0,person:"周辉"},
+"重庆":{jine:14.1,sl:1.0,person:"薛文"}
+},
+xin:{}
+}
+};
+
+const actual26 = {
+liqing:{
+hospital:{
+"上海":{jine:0.8,sl:0.04},
+"云南":{jine:12.97,sl:0.76},
+"北京":{jine:6.18,sl:0.36},
+"四川":{jine:162.43,sl:9.72},
+"天津":{jine:1.51,sl:0.09},
+"宁夏":{jine:0.98,sl:0.06},
+"安徽":{jine:111.0,sl:6.46},
+"山东":{jine:21.49,sl:1.26},
+"山西":{jine:98.12,sl:5.72},
+"广东":{jine:10.1,sl:0.6},
+"广西":{jine:46.04,sl:2.71},
+"新疆":{jine:55.92,sl:2.56},
+"江苏":{jine:492.86,sl:29.2},
+"江西":{jine:43.11,sl:2.54},
+"河北":{jine:89.62,sl:5.22},
+"河南":{jine:355.7,sl:21.16},
+"浙江":{jine:38.28,sl:2.25},
+"湖北":{jine:103.0,sl:6.21},
+"湖南":{jine:88.55,sl:5.18},
+"甘肃":{jine:22.25,sl:1.32},
+"福建":{jine:2.32,sl:0.14},
+"西藏":{jine:0.17,sl:0.01},
+"贵州":{jine:33.29,sl:1.98},
+"辽宁":{jine:3.03,sl:0.18},
+"重庆":{jine:743.14,sl:44.08},
+"陕西":{jine:301.57,sl:17.92},
+"青海":{jine:4.54,sl:0.27},
+"黑龙江":{jine:1.55,sl:0.09}
+},
+xin:{
+"B端-壹药网":{jine:152.84,sl:9.09},
+"B端-药师帮":{jine:136.19,sl:7.7},
+"C端-其他":{jine:6.6,sl:0.4},
+"C端-阿里":{jine:9.27,sl:0.54},
+"KA":{jine:107.04,sl:6.3}
+}
+},
+gailisheng:{
+hospital:{
+"云南":{jine:1.95,sl:0.09},
+"北京":{jine:85.58,sl:3.92},
+"四川":{jine:8.76,sl:1.98},
+"天津":{jine:11.39,sl:0.54},
+"广东":{jine:2.39,sl:0.54},
+"浙江":{jine:126.35,sl:8.37},
+"湖北":{jine:7.77,sl:1.76},
+"贵州":{jine:0.6,sl:0.14},
+"重庆":{jine:2.23,sl:0.36}
+},
+xin:{
+"C端-其他":{jine:0.2,sl:0.04}
+}
+}
+};
+
+const actual25 = {
+liqing:{
+hospital:{
+"云南":{jine:50.36,sl:2.97},
+"四川":{jine:291.1,sl:17.19},
+"安徽":{jine:268.4,sl:15.63},
+"山西":{jine:607.16,sl:19.17},
+"广东":{jine:2.09,sl:0.09},
+"广西":{jine:92.9,sl:5.48},
+"新疆":{jine:464.84,sl:14.85},
+"江苏":{jine:1532.93,sl:90.21},
+"河北":{jine:245.16,sl:14.28},
+"河南":{jine:1723.07,sl:54.4},
+"浙江":{jine:99.18,sl:3.33},
+"湖北":{jine:144.33,sl:8.7},
+"湖南":{jine:283.63,sl:14.58},
+"甘肃":{jine:58.41,sl:3.46},
+"西藏":{jine:0.51,sl:0.03},
+"贵州":{jine:94.58,sl:5.62},
+"辽宁":{jine:0.87,sl:0.03},
+"重庆":{jine:1804.77,sl:96.65},
+"陕西":{jine:1051.7,sl:50.29},
+"青海":{jine:12.69,sl:0.68}
+},
+xin:{
+"B端-壹药网":{jine:337.36,sl:19.73},
+"B端-药师帮":{jine:59.31,sl:3.24},
+"C端-京东":{jine:51.58,sl:2.7},
+"C端-其他":{jine:1.42,sl:0.17},
+"C端-阿里":{jine:43.01,sl:1.94},
+"KA":{jine:384.62,sl:19.22}
+}
+},
+gailisheng:{
+hospital:{
+"云南":{jine:12.89,sl:0.63},
+"北京":{jine:282.3,sl:12.92},
+"四川":{jine:13.94,sl:3.15},
+"天津":{jine:33.29,sl:1.58},
+"广东":{jine:5.97,sl:1.35},
+"浙江":{jine:339.48,sl:22.18},
+"湖北":{jine:25.46,sl:5.76},
+"贵州":{jine:5.49,sl:0.9},
+"重庆":{jine:17.96,sl:2.84}
+},
+xin:{
+"C端-其他":{jine:1.65,sl:0.37}
+}
+}
+};
+
+const DATA_CONFIG = {currentYear:2026,currentMonth:4,currentDay:29,daysInCurrentMonth:30};
+
+let currentMainPage='total';
+let liqingMetric='jine';
+let liqingTab='total';
+let gailiMetric='jine';
+let gailiTab='total';
+let charts={};
+
+function getMV(year,month,product,dept){
+  const key=`${year}-${month}-${product}-${dept}`;
+  return monthlyRaw[key]||{};
+}
+
+function calcYoY(product,dept,metric){
+  // 同比逻辑：1月1日至当前日期，2026 vs 2025（实际到天）
+  const{currentMonth,currentDay}=DATA_CONFIG;
+  let current=0,lastYear=0;
+  for(let m=1;m<=currentMonth;m++){current+=getMV(2026,m,product,dept)[metric]||0;}
+  for(let m=1;m<=currentMonth;m++){lastYear+=getMV(2025,m,product,dept)[metric]||0;}
+  if(lastYear===0)return null;
+  return(current-lastYear)/lastYear;
+}
+
+function calcMoM(product,dept,metric){
+  const{currentMonth}=DATA_CONFIG;
+  if(currentMonth<4)return null;
+  const recent3=currentMonth-2;
+  const prev3=currentMonth-5;
+  let recentSum=0,prevSum=0;
+  for(let m=recent3;m<=currentMonth;m++){recentSum+=getMV(2026,m,product,dept)[metric]||0;}
+  for(let m=prev3;m<=currentMonth-3;m++){if(m>0)prevSum+=getMV(2026,m,product,dept)[metric]||0;}
+  if(prevSum===0)return null;
+  return(recentSum-prevSum)/prevSum;
+}
+
+function formatNum(val,metric){
+  if(val==null)return'-';
+  return val.toFixed(2);
+}
+
+function formatPct(val){
+  if(val==null)return'-';
+  const arrow=val>0?'↑':val<0?'↓':'→';
+  return`${arrow} ${(val*100).toFixed(1)}%`;
+}
+
+function renderKPIs(containerId,product,dept,metric){
+  const container=document.getElementById(containerId);
+  let target=0,actual=0;
+  const cm=DATA_CONFIG.currentMonth;
+
+  if(product==='total'){
+    Object.values(target2026.liqing.hospital).forEach(v=>target+=v[metric]||0);
+    Object.values(target2026.liqing.xin).forEach(v=>target+=v[metric]||0);
+    Object.values(target2026.gailisheng.hospital).forEach(v=>target+=v[metric]||0);
+    for(let m=1;m<=cm;m++){
+      actual+=getMV(2026,m,"立庆","医院销售部")[metric]||0;
+      actual+=getMV(2026,m,"立庆","新营销部")[metric]||0;
+      actual+=getMV(2026,m,"盖立升","医院销售部")[metric]||0;
+      actual+=getMV(2026,m,"盖立升","新营销部")[metric]||0;
+    }
+  }else if(product==='liqing'){
+    if(dept==='total'){
+      Object.values(target2026.liqing.hospital).forEach(v=>target+=v[metric]||0);
+      Object.values(target2026.liqing.xin).forEach(v=>target+=v[metric]||0);
+      for(let m=1;m<=cm;m++){
+        actual+=getMV(2026,m,"立庆","医院销售部")[metric]||0;
+        actual+=getMV(2026,m,"立庆","新营销部")[metric]||0;
+      }
+    }else if(dept==='hospital'){
+      Object.values(target2026.liqing.hospital).forEach(v=>target+=v[metric]||0);
+      for(let m=1;m<=cm;m++){actual+=getMV(2026,m,"立庆","医院销售部")[metric]||0;}
+    }else{
+      Object.values(target2026.liqing.xin).forEach(v=>target+=v[metric]||0);
+      for(let m=1;m<=cm;m++){actual+=getMV(2026,m,"立庆","新营销部")[metric]||0;}
+    }
+  }else if(product==='gailisheng'){
+    if(dept==='total'){
+      Object.values(target2026.gailisheng.hospital).forEach(v=>target+=v[metric]||0);
+      for(let m=1;m<=cm;m++){
+        actual+=getMV(2026,m,"盖立升","医院销售部")[metric]||0;
+        actual+=getMV(2026,m,"盖立升","新营销部")[metric]||0;
+      }
+    }else if(dept==='hospital'){
+      Object.values(target2026.gailisheng.hospital).forEach(v=>target+=v[metric]||0);
+      for(let m=1;m<=cm;m++){actual+=getMV(2026,m,"盖立升","医院销售部")[metric]||0;}
+    }else{
+      for(let m=1;m<=cm;m++){actual+=getMV(2026,m,"盖立升","新营销部")[metric]||0;}
+    }
+  }
+
+  const progress=target>0?actual/target:0;
+  let yoy=null;
+  if(product==='total'){
+    const yoyL=calcYoY("立庆","医院销售部",metric);
+    const yoyX=calcYoY("立庆","新营销部",metric);
+    const yoyG=calcYoY("盖立升","医院销售部",metric);
+    const yoyGX=calcYoY("盖立升","新营销部",metric);
+    let ws=0,tw=0;
+    [yoyL,yoyX,yoyG,yoyGX].forEach((y,i)=>{
+      if(y!=null){
+        const w=[getMV(2026,cm,"立庆","医院销售部")[metric]||0,
+                 getMV(2026,cm,"立庆","新营销部")[metric]||0,
+                 getMV(2026,cm,"盖立升","医院销售部")[metric]||0,
+                 getMV(2026,cm,"盖立升","新营销部")[metric]||0][i];
+        ws+=y*w;tw+=w;
+      }
+    });
+    yoy=tw>0?ws/tw:null;
+  }else{
+    const pName=product==="liqing"?"立庆":"盖立升";
+    const dName=dept==='hospital'?"医院销售部":dept==='xin'?"新营销部":"医院销售部";
+    yoy=calcYoY(pName,dName,metric);
+  }
+
+  let mom=null;
+  if(product==='total'){
+    const mL=calcMoM("立庆","医院销售部",metric);
+    const mX=calcMoM("立庆","新营销部",metric);
+    const mG=calcMoM("盖立升","医院销售部",metric);
+    const mGX=calcMoM("盖立升","新营销部",metric);
+    let ws=0,tw=0;
+    [mL,mX,mG,mGX].forEach((m,i)=>{
+      if(m!=null){
+        const w=[getMV(2026,cm,"立庆","医院销售部")[metric]||0,
+                 getMV(2026,cm,"立庆","新营销部")[metric]||0,
+                 getMV(2026,cm,"盖立升","医院销售部")[metric]||0,
+                 getMV(2026,cm,"盖立升","新营销部")[metric]||0][i];
+        ws+=m*w;tw+=w;
+      }
+    });
+    mom=tw>0?ws/tw:null;
+  }else{
+    const pName=product==="liqing"?"立庆":"盖立升";
+    const dName=dept==='hospital'?"医院销售部":dept==='xin'?"新营销部":"医院销售部";
+    mom=calcMoM(pName,dName,metric);
+  }
+
+  let curMonthValue=0;
+  if(product==='total'){
+    curMonthValue=(getMV(2026,cm,"立庆","医院销售部")[metric]||0)+
+               (getMV(2026,cm,"立庆","新营销部")[metric]||0)+
+               (getMV(2026,cm,"盖立升","医院销售部")[metric]||0)+
+               (getMV(2026,cm,"盖立升","新营销部")[metric]||0);
+  }else{
+    const pName=product==="liqing"?"立庆":"盖立升";
+    if(dept==='total'){
+      curMonthValue=(getMV(2026,cm,pName,"医院销售部")[metric]||0)+
+                    (getMV(2026,cm,pName,"新营销部")[metric]||0);
+    }else{
+      const dName=dept==='hospital'?"医院销售部":"新营销部";
+      curMonthValue=getMV(2026,cm,pName,dName)[metric]||0;
+    }
+  }
+
+  const unit=metric==='jine'?'万元':'万盒';
+  const monthLabel=`26年${cm}月完成`;
+  container.innerHTML=`
+<div class="kpi-card"><div class="kpi-label">26年目标</div><div class="kpi-value">${formatNum(target,metric)}<span class="kpi-unit">${unit}</span></div></div>
+<div class="kpi-card"><div class="kpi-label">当年完成</div><div class="kpi-value">${formatNum(actual,metric)}<span class="kpi-unit">${unit}</span></div></div>
+<div class="kpi-card"><div class="kpi-label">完成进度</div><div class="kpi-value">${(progress*100).toFixed(1)}<span class="kpi-unit">%</span></div><div class="kpi-progress"><div class="kpi-progress-bar" style="width:${Math.min(progress*100,100)}%"></div></div></div>
+<div class="kpi-card"><div class="kpi-label">同比(YTD)</div><div class="kpi-value"><span class="kpi-change ${yoy>0?'up':yoy<0?'down':'neutral'}">${formatPct(yoy)}</span></div></div>
+<div class="kpi-card"><div class="kpi-label">近3月环比</div><div class="kpi-value"><span class="kpi-change ${mom>0?'up':mom<0?'down':'neutral'}">${formatPct(mom)}</span></div></div>
+<div class="kpi-card"><div class="kpi-label">${monthLabel}</div><div class="kpi-value">${formatNum(curMonthValue,metric)}<span class="kpi-unit">${unit}</span></div></div>
+  `;
+}
+
+function renderChart(containerId,product,dept,metric){
+  const chartDom=document.getElementById(containerId);
+  if(!chartDom)return;
+  const chart=echarts.init(chartDom);
+  charts[containerId]=chart;
+  let target=0;
+  if(product==='total'){
+    Object.values(target2026.liqing.hospital).forEach(v=>target+=v[metric]||0);
+    Object.values(target2026.liqing.xin).forEach(v=>target+=v[metric]||0);
+    Object.values(target2026.gailisheng.hospital).forEach(v=>target+=v[metric]||0);
+  }else if(product==='liqing'){
+    if(dept==='total'){
+      Object.values(target2026.liqing.hospital).forEach(v=>target+=v[metric]||0);
+      Object.values(target2026.liqing.xin).forEach(v=>target+=v[metric]||0);
+    }else if(dept==='hospital'){
+      Object.values(target2026.liqing.hospital).forEach(v=>target+=v[metric]||0);
+    }else{
+      Object.values(target2026.liqing.xin).forEach(v=>target+=v[metric]||0);
+    }
+  }else if(product==='gailisheng'){
+    if(dept==='total'||dept==='hospital'){
+      Object.values(target2026.gailisheng.hospital).forEach(v=>target+=v[metric]||0);
+    }
+  }
+  const monthlyTarget=target/12;
+  const months=['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  const data2026=[],data2025=[];
+  if(product==='total'){
+    for(let m=1;m<=12;m++){
+      const v26=(getMV(2026,m,"立庆","医院销售部")[metric]||0)+(getMV(2026,m,"立庆","新营销部")[metric]||0)+(getMV(2026,m,"盖立升","医院销售部")[metric]||0)+(getMV(2026,m,"盖立升","新营销部")[metric]||0);
+      const v25=(getMV(2025,m,"立庆","医院销售部")[metric]||0)+(getMV(2025,m,"立庆","新营销部")[metric]||0)+(getMV(2025,m,"盖立升","医院销售部")[metric]||0)+(getMV(2025,m,"盖立升","新营销部")[metric]||0);
+      data2026.push(v26);data2025.push(v25);
+    }
+  }else{
+    const pName=product==="liqing"?"立庆":"盖立升";
+    const dName=dept==='hospital'?"医院销售部":dept==='xin'?"新营销部":"医院销售部";
+    for(let m=1;m<=12;m++){
+      data2026.push(getMV(2026,m,pName,dName)[metric]||0);
+      data2025.push(getMV(2025,m,pName,dName)[metric]||0);
+    }
+  }
+  const unit=metric==='jine'?'万元':'万盒';
+  const option={
+    tooltip:{trigger:'axis',axisPointer:{type:'shadow'},formatter:function(params){
+      let result=params[0].axisValue+'<br/>';
+      params.forEach(item=>{result+=item.marker+' '+item.seriesName+': <b>'+item.value.toFixed(2)+' '+unit+'</b><br/>';}); 
+      return result;
+    }},
+    legend:{data:['2026年','2025年','月度目标'],top:0},
+    grid:{left:'3%',right:'4%',bottom:'3%',containLabel:true},
+    xAxis:{type:'category',data:months,axisLine:{lineStyle:{color:'#e2e8f0'}},axisLabel:{color:'#64748b',interval:0,rotate:window.innerWidth<=480?30:0,fontSize:window.innerWidth<=768?10:12}},
+    yAxis:{type:'value',name:unit,axisLine:{show:false},splitLine:{lineStyle:{color:'#f1f5f9'}},axisLabel:{color:'#64748b',formatter:function(v){return v.toFixed(2);}}},
+    series:[
+      {name:'2026年',type:'bar',data:data2026,itemStyle:{color:'#3b82f6',borderRadius:[6,6,0,0]},barWidth:'30%'},
+      {name:'2025年',type:'bar',data:data2025,itemStyle:{color:'#94a3b8',borderRadius:[4,4,0,0]},barWidth:'30%'},
+      {name:'月度目标',type:'line',data:new Array(12).fill(monthlyTarget),lineStyle:{color:'#f97316',width:2,type:'dashed'},itemStyle:{color:'#f97316'},symbol:'circle',symbolSize:6}
+    ]
+  };
+  chart.setOption(option);
+}
+
+function renderTable(containerId,product,dept,metric){
+  const container=document.getElementById(containerId);
+  const targetData=target2026[product][dept];
+  const actualDataCurrent=actual26[product][dept];
+  const actualDataLastYear=actual25[product][dept];
+  const rows=[];
+  for(const[region,data]of Object.entries(targetData)){
+    if((data[metric]||0)>0){
+      rows.push({region:region,person:data.person,target:data[metric],actual:actualDataCurrent[region]?actualDataCurrent[region][metric]:0,lastYear:actualDataLastYear[region]?actualDataLastYear[region][metric]:0});
+    }
+  }
+  rows.sort((a,b)=>{
+    const pA=a.actual/a.target||0;
+    const pB=b.actual/b.target||0;
+    return pB-pA||b.actual-a.actual;
+  });
+  container.innerHTML=rows.map((row,idx)=>{
+    const progress=row.target>0?row.actual/row.target:0;
+    const yoy=row.lastYear>0?(row.actual-row.lastYear)/row.lastYear:null;
+    const rankClass=idx===0?'top1':idx===1?'top2':idx===2?'top3':'';
+    const yoyClass=yoy===null?'neutral':yoy>0?'up':'down';
+    const barW=Math.min(progress*100,100).toFixed(1);
+    const metricUnit=metric==='jine'?'万元':'万盒';
+    return`<div class="table-row">
+<div class="rank"><span class="rank ${rankClass}">${idx+1}</span></div>
+<div class="region">${row.region}<div class="person">${row.person}</div></div>
+<div class="target">${row.target.toFixed(2)}</div>
+<div class="actual">${row.actual.toFixed(2)}</div>
+<div><div class="pct-bar"><div class="pct-bar-inner" style="width:${barW}%;max-width:60px"></div><span class="pct-text">${(progress*100).toFixed(1)}%</span></div></div>
+<div class="yoy ${yoyClass}">${yoy===null?'-':(yoy>0?'↑':'↓')+' '+(Math.abs(yoy)*100).toFixed(1)+'%'}</div>
+</div>`;
+  }).join('');
+}
+
+function switchMainPage(page){
+  currentMainPage=page;
+  document.querySelectorAll('.page-content').forEach(el=>el.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  document.querySelectorAll('.main-slicer .slicer-btn').forEach(btn=>{
+    btn.classList.toggle('active',btn.dataset.page===page);
+  });
+  if(page==='total'){renderKPIs('kpi-total','total',null,'jine');renderChart('chart-total','total',null,'jine');}
+  else if(page==='liqing'){renderLiqingTab(liqingTab);}
+  else if(page==='gailisheng'){renderGailiTab(gailiTab);}
+}
+
+function switchLiqingMetric(metric){
+  liqingMetric=metric;
+  document.querySelectorAll('#page-liqing .sub-slicer .slicer-btn').forEach(btn=>{btn.classList.toggle('active',btn.dataset.metric===metric);});
+  document.querySelectorAll('.liqing-metric-name').forEach(el=>el.textContent=metric==='jine'?'金额':'数量');
+  renderLiqingTab(liqingTab);
+}
+
+function switchLiqingTab(tab){
+  liqingTab=tab;
+  document.querySelectorAll('#page-liqing .tab-btn').forEach((btn,i)=>{btn.classList.toggle('active',['total','hospital','xin'][i]===tab);});
+  document.querySelectorAll('#page-liqing .tab-content').forEach(el=>el.classList.remove('active'));
+  document.getElementById('liqing-tab-'+tab).classList.add('active');
+  renderLiqingTab(tab);
+}
+
+function renderLiqingTab(tab){
+  if(tab==='total'){renderKPIs('kpi-liqing-total','liqing','total',liqingMetric);renderChart('chart-liqing-total','liqing','total',liqingMetric);}
+  else if(tab==='hospital'){renderKPIs('kpi-liqing-hospital','liqing','hospital',liqingMetric);renderChart('chart-liqing-hospital','liqing','hospital',liqingMetric);renderTable('table-liqing-hospital','liqing','hospital',liqingMetric);}
+  else{renderKPIs('kpi-liqing-xin','liqing','xin',liqingMetric);renderChart('chart-liqing-xin','liqing','xin',liqingMetric);renderTable('table-liqing-xin','liqing','xin',liqingMetric);}
+}
+
+function switchGailiMetric(metric){
+  gailiMetric=metric;
+  document.querySelectorAll('#page-gailisheng .sub-slicer .slicer-btn').forEach(btn=>{btn.classList.toggle('active',btn.dataset.metric===metric);});
+  document.querySelectorAll('.gaili-metric-name').forEach(el=>el.textContent=metric==='jine'?'金额':'数量');
+  renderGailiTab(gailiTab);
+}
+
+function switchGailiTab(tab){
+  gailiTab=tab;
+  document.querySelectorAll('#page-gailisheng .tab-btn').forEach((btn,i)=>{btn.classList.toggle('active',['total','hospital','xin'][i]===tab);});
+  document.querySelectorAll('#page-gailisheng .tab-content').forEach(el=>el.classList.remove('active'));
+  document.getElementById('gaili-tab-'+tab).classList.add('active');
+  renderGailiTab(tab);
+}
+
+function renderGailiTab(tab){
+  if(tab==='total'){renderKPIs('kpi-gaili-total','gailisheng','total',gailiMetric);renderChart('chart-gaili-total','gailisheng','total',gailiMetric);}
+  else if(tab==='hospital'){renderKPIs('kpi-gaili-hospital','gailisheng','hospital',gailiMetric);renderChart('chart-gaili-hospital','gailisheng','hospital',gailiMetric);renderTable('table-gaili-hospital','gailisheng','hospital',gailiMetric);}
+  else{renderKPIs('kpi-gaili-xin','gailisheng','xin',gailiMetric);renderChart('chart-gaili-xin','gailisheng','xin',gailiMetric);}
+}
+
+window.addEventListener('resize',()=>{Object.values(charts).forEach(c=>c.resize());});
+
+// 初始化
+renderKPIs('kpi-total','total',null,'jine');
+renderChart('chart-total','total',null,'jine');
+</script>
+</body>
+</html>
