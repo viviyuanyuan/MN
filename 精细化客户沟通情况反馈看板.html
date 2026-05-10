@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>精细化客户进一步沟通情况反馈看板</title>
+<script src="https://cdn.bootcdn.net/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
+<script src="dashboard_data.js"></script>
+<script src="dashboard_detail.js"></script>
+<style>
+  /* ============================================================
+     白色底 · 蓝橙主题
+     主色蓝：#1565c0 / #1e88e5 / #42a5f5 / #90caf9
+     强调橙：#e65100 / #f57c00 / #ff9800 / #ffb74d
+     背景白：#ffffff / #f5f7fa / #eef2f7
+     边框灰：#d0d8e4 / #c5d0e0
+  ============================================================ */
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #f0f4f8;
+    color: #2c3e50;
+    font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+    min-height: 100vh;
+  }
+
+  /* ===== 顶部标题 ===== */
+  .header {
+    background: linear-gradient(135deg, #1565c0 0%, #1e88e5 60%, #42a5f5 100%);
+    border-bottom: 3px solid #f57c00;
+    padding: 18px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 3px 16px rgba(21,101,192,0.35);
+  }
+  .header-title {
+    font-size: 22px; font-weight: 700; color: #fff; letter-spacing: 2px;
+  }
+  .header-sub { font-size: 13px; color: #bbdefb; margin-top: 4px; }
+  .header-right { text-align: right; }
+  .dedup-badge {
+    background: linear-gradient(90deg, #e65100, #ff9800);
+    color: #fff; border-radius: 20px;
+    padding: 5px 14px; font-size: 12px; font-weight: 600;
+    display: inline-block; margin-bottom: 4px;
+    box-shadow: 0 2px 8px rgba(230,81,0,0.4);
+  }
+  .header-date { font-size: 12px; color: #90caf9; }
+
+  /* ===== 主体布局 ===== */
+  .main { padding: 20px 28px; }
+
+  /* ===== KPI 栏 ===== */
+  .kpi-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-bottom: 20px; }
+  .kpi-card {
+    background: #ffffff;
+    border: 1px solid #d0d8e4;
+    border-radius: 10px;
+    padding: 16px 18px;
+    position: relative; overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  .kpi-card::before {
+    content: ''; position: absolute; top: 0; left: 0;
+    width: 4px; height: 100%; border-radius: 10px 0 0 10px;
+  }
+  .kpi-card.blue::before   { background: linear-gradient(180deg, #42a5f5, #1565c0); }
+  .kpi-card.orange::before { background: linear-gradient(180deg, #ffb74d, #e65100); }
+  .kpi-card.orange2::before { background: linear-gradient(180deg, #ff9800, #f57c00); }
+  .kpi-card.red::before    { background: linear-gradient(180deg, #ef5350, #c62828); }
+  .kpi-card.blue2::before  { background: linear-gradient(180deg, #90caf9, #1565c0); }
+  .kpi-label { font-size: 12px; color: #78909c; margin-bottom: 8px; }
+  .kpi-value { font-size: 30px; font-weight: 700; color: #1a237e; line-height: 1; }
+  .kpi-sub { font-size: 11px; color: #90a4ae; margin-top: 6px; }
+  .kpi-pct { font-size: 13px; font-weight: 700; margin-top: 4px; }
+  .pct-orange { color: #f57c00; }
+  .pct-orange2{ color: #e65100; }
+  .pct-red    { color: #c62828; }
+
+  /* ===== 去重说明条 ===== */
+  .dedup-bar {
+    background: linear-gradient(90deg, #e3f2fd, #fff3e0);
+    border: 1px solid #90caf9; border-left: 4px solid #ff9800;
+    border-radius: 8px;
+    padding: 10px 18px; margin-bottom: 20px;
+    display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+    font-size: 13px; color: #37474f;
+  }
+  .dedup-bar .highlight { color: #e65100; font-weight: 700; }
+  .dedup-bar .tag {
+    background: rgba(255,152,0,0.15); border: 1px solid #ff9800;
+    color: #e65100; border-radius: 12px; padding: 3px 10px; font-size: 11px; font-weight: 600;
+  }
+
+  /* ===== 区块标题 ===== */
+  .section { margin-bottom: 24px; }
+  .section-title {
+    font-size: 15px; font-weight: 700; color: #1a237e;
+    padding: 8px 14px; margin-bottom: 14px;
+    background: linear-gradient(90deg, #e3f2fd, #fff8f0);
+    border-left: 4px solid #ff9800;
+    border-bottom: 1px solid #c5d0e0;
+    border-radius: 0 6px 0 0;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .section-title .badge {
+    background: linear-gradient(90deg, #e65100, #ff9800);
+    color: #fff; border-radius: 4px;
+    padding: 2px 8px; font-size: 11px;
+    box-shadow: 0 1px 6px rgba(230,81,0,0.4);
+  }
+
+  /* ===== 二列/三列 图表 ===== */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .grid-2-1 { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; }
+  .grid-1-2 { display: grid; grid-template-columns: 1fr 2fr; gap: 16px; }
+
+  .card {
+    background: #ffffff;
+    border: 1px solid #d0d8e4;
+    border-radius: 10px; padding: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .card-title {
+    font-size: 13px; color: #1565c0; margin-bottom: 12px; font-weight: 600;
+    padding-bottom: 8px; border-bottom: 1px solid #e3f2fd;
+  }
+  .chart { width: 100%; height: 220px; }
+  .chart-lg { width: 100%; height: 270px; }
+  .chart-xl { width: 100%; height: 300px; }
+
+  /* ===== 重点指标卡组 ===== */
+  .stat-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 14px; }
+  .stat-card {
+    background: #ffffff;
+    border: 1px solid #d0d8e4;
+    border-radius: 8px; padding: 12px 14px; text-align: center;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  }
+  .stat-card .s-val { font-size: 24px; font-weight: 700; margin: 6px 0 4px; }
+  .stat-card .s-label { font-size: 11px; color: #78909c; }
+  .blue-val    { color: #1565c0; }
+  .orange-val  { color: #e65100; }
+  .orange2-val { color: #f57c00; }
+  .red-val     { color: #c62828; }
+  .blue2-val   { color: #42a5f5; }
+  .gold-val    { color: #f9a825; }
+
+  /* ===== 分析文字卡 ===== */
+  .insight-box {
+    background: #e3f2fd;
+    border: 1px solid #90caf9;
+    border-left: 3px solid #1e88e5;
+    border-radius: 8px; padding: 12px 16px; margin-top: 12px;
+    font-size: 12px; color: #1a237e; line-height: 1.9;
+  }
+  .insight-box .ins-title { color: #1565c0; font-weight: 600; margin-bottom: 6px; font-size: 13px; }
+  .insight-box .warn { color: #c62828; }
+  .insight-box .ok   { color: #e65100; font-weight: 600; }
+  .insight-box .em   { color: #f57c00; font-weight: 700; }
+
+  /* ===== 风险提示 ===== */
+  .risk-bar {
+    background: #ffebee;
+    border: 1px solid #ef9a9a;
+    border-left: 3px solid #c62828;
+    border-radius: 8px; padding: 10px 16px; margin-top: 12px;
+    font-size: 12px; color: #b71c1c; line-height: 1.9;
+  }
+  .risk-bar .risk-title { color: #c62828; font-weight: 700; margin-bottom: 4px; font-size: 13px; }
+
+  /* ===== 责任人表格 ===== */
+  .table-wrap { overflow-x: auto; border-radius: 8px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  thead th {
+    background: linear-gradient(90deg, #1565c0, #1e88e5);
+    color: #fff; font-weight: 600;
+    padding: 9px 12px; text-align: center; white-space: nowrap;
+    border-bottom: 2px solid #f57c00;
+  }
+  tbody tr { border-bottom: 1px solid #e8edf3; }
+  tbody tr:hover { background: #fff8f0; }
+  tbody td { padding: 8px 12px; text-align: center; color: #37474f; }
+  tbody td:first-child { text-align: left; color: #1a237e; font-weight: 600; }
+  .td-gold   { color: #f9a825 !important; font-weight: 700; }
+  .td-orange { color: #e65100 !important; font-weight: 700; cursor: pointer; }
+  .td-red    { color: #c62828 !important; font-weight: 700; cursor: pointer; }
+  .td-blue   { color: #1565c0 !important; font-weight: 700; cursor: pointer; }
+  .clickable { cursor: pointer; text-decoration: underline; }
+  .clickable:hover { opacity: 0.7; }
+
+  /* ===== 底部 ===== */
+  .footer {
+    text-align: center; padding: 14px; color: #78909c;
+    font-size: 11px;
+    border-top: 1px solid #d0d8e4;
+    background: #ffffff;
+    margin-top: 10px;
+  }
+
+  /* ===== 模态框 ===== */
+  .modal-overlay {
+    display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5); z-index: 1000;
+    justify-content: center; align-items: center;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal {
+    background: #fff; border-radius: 12px; width: 90%; max-width: 1000px;
+    max-height: 80vh; overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    display: flex; flex-direction: column;
+  }
+  .modal-header {
+    background: linear-gradient(135deg, #1565c0, #1e88e5);
+    color: #fff; padding: 14px 20px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .modal-title { font-size: 15px; font-weight: 700; }
+  .modal-close {
+    background: none; border: none; color: #fff; font-size: 22px;
+    cursor: pointer; padding: 0 6px; line-height: 1;
+  }
+  .modal-close:hover { color: #ff9800; }
+  .modal-body { padding: 16px; overflow-y: auto; flex: 1; }
+  .modal-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .modal-table th {
+    background: #e3f2fd; color: #1565c0; font-weight: 600;
+    padding: 8px 10px; text-align: center; border: 1px solid #c5d0e0;
+    position: sticky; top: 0; z-index: 1;
+  }
+  .modal-table td {
+    padding: 7px 10px; text-align: center; border: 1px solid #e8edf3; color: #37474f;
+  }
+  .modal-table tbody tr:hover { background: #fff8f0; }
+  .modal-table tbody td:first-child { text-align: left; font-weight: 600; color: #1a237e; }
+  .modal-summary {
+    background: #f5f7fa; border: 1px solid #d0d8e4; border-radius: 8px;
+    padding: 10px 16px; margin-bottom: 12px;
+    font-size: 13px; color: #37474f;
+  }
+  .modal-summary strong { color: #1565c0; }
+</style>
+</head>
+<body>
+
+<!-- 顶部标题 -->
+<div class="header">
+  <div>
+    <div class="header-title">📊 精细化客户进一步沟通情况反馈看板</div>
+    <div class="header-sub">数据来源：精细化客户沟通办理公司的情况 | 去重维度：客户姓名 + 地区</div>
+  </div>
+  <div class="header-right">
+    <div class="dedup-badge">✅ 已去重处理</div>
+    <div class="header-date" id="headerDate">统计日期加载中...</div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- 去重说明条 -->
+  <div class="dedup-bar">
+    <span>🔍 数据质量说明：</span>
+    <span>原始记录 <span class="highlight" id="rawCount">-</span> 条</span>
+    <span>→</span>
+    <span>去重规则：<span class="tag">客户姓名 + 地区</span> 唯一键，保留最新记录</span>
+    <span>→</span>
+    <span>剔除重复 <span class="highlight" id="dupCount">-</span> 条</span>
+    <span>→</span>
+    <span>有效去重客户 <span class="highlight" id="validCount">-</span> 人</span>
+    <span style="color:#ef5350;">⚠ 以下所有分析均基于去重后的独立客户</span>
+  </div>
+
+  <!-- KPI 汇总行 -->
+  <div class="kpi-row">
+    <div class="kpi-card blue">
+      <div class="kpi-label">去重后有效客户数</div>
+      <div class="kpi-value" id="kpiTotal">-</div>
+      <div class="kpi-sub">原始 <span id="kpiRaw">-</span> 条 → 去重 <span id="kpiValid">-</span></div>
+    </div>
+    <div class="kpi-card orange2">
+      <div class="kpi-label">沟通覆盖率（已通知）</div>
+      <div class="kpi-value" id="kpiComm">-</div>
+      <div class="kpi-pct pct-orange" id="kpiCommPct">-</div>
+      <div class="kpi-sub" id="kpiCommSub">-</div>
+    </div>
+    <div class="kpi-card blue2">
+      <div class="kpi-label">医药代表备案填写率</div>
+      <div class="kpi-value" id="kpiBeian">-</div>
+      <div class="kpi-pct pct-orange2" id="kpiBeianPct">-</div>
+      <div class="kpi-sub" id="kpiBeianSub">-</div>
+    </div>
+    <div class="kpi-card orange">
+      <div class="kpi-label">办公司意愿填写率</div>
+      <div class="kpi-value" id="kpiOffice">-</div>
+      <div class="kpi-pct pct-orange" id="kpiOfficePct">-</div>
+      <div class="kpi-sub" id="kpiOfficeSub">-</div>
+    </div>
+    <div class="kpi-card red">
+      <div class="kpi-label">高风险客户</div>
+      <div class="kpi-value" id="kpiRisk">-</div>
+      <div class="kpi-pct pct-red" id="kpiRiskPct">-</div>
+      <div class="kpi-sub" id="kpiRiskSub">-</div>
+    </div>
+  </div>
+
+  <!-- ===========================
+       重点板块①：医药代表备案
+       =========================== -->
+  <div class="section">
+    <div class="section-title">
+      🏥 重点分析①：医药代表备案
+      <span class="badge">FOCUS</span>
+    </div>
+
+    <!-- 4个指标卡 -->
+    <div class="stat-cards">
+      <div class="stat-card">
+        <div class="s-label">符合/已备案</div>
+        <div class="s-val orange-val" id="statBeianYes">-</div>
+        <div class="s-label" id="statBeianYesPct">-</div>
+      </div>
+      <div class="stat-card">
+        <div class="s-label">未备案/无</div>
+        <div class="s-val red-val" id="statBeianNo">-</div>
+        <div class="s-label" id="statBeianNoPct">-</div>
+      </div>
+      <div class="stat-card">
+        <div class="s-label">已填写人数</div>
+        <div class="s-val blue2-val" id="statBeianFilled">-</div>
+        <div class="s-label" id="statBeianFilledPct">-</div>
+      </div>
+      <div class="stat-card">
+        <div class="s-label">未填写人数</div>
+        <div class="s-val orange-val" id="statBeianUnfilled">-</div>
+        <div class="s-label" id="statBeianUnfilledPct">-</div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">医药代表备案分布（去重后）</div>
+        <div id="beianPie" class="chart"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">各大区医药代表备案堆叠图</div>
+        <div id="beianRegionBar" class="chart"></div>
+      </div>
+    </div>
+
+    <div class="insight-box">
+      <div class="ins-title">📌 医药代表备案数据解读</div>
+      <span id="insightBeian"></span>
+    </div>
+  </div>
+
+  <!-- ===========================
+       重点板块②：是否愿意办公司
+       =========================== -->
+  <div class="section">
+    <div class="section-title">
+      🏢 重点分析②：是否愿意办公司
+      <span class="badge">FOCUS</span>
+    </div>
+
+    <div class="stat-cards" style="grid-template-columns: repeat(4,1fr);">
+      <div class="stat-card">
+        <div class="s-label">两者均可</div>
+        <div class="s-val orange-val" id="statBoth">-</div>
+        <div class="s-label">最理想情形</div>
+      </div>
+      <div class="stat-card">
+        <div class="s-label">可办个体户</div>
+        <div class="s-val blue2-val" id="statGeTi">-</div>
+        <div class="s-label">可转化</div>
+      </div>
+      <div class="stat-card">
+        <div class="s-label">可办小微企业</div>
+        <div class="s-val blue-val" id="statXiaoWei">-</div>
+        <div class="s-label">可转化</div>
+      </div>
+      <div class="stat-card">
+        <div class="s-label">两者均不可</div>
+        <div class="s-val red-val" id="statNone">-</div>
+        <div class="s-label">最大阻力</div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">办公司意愿分布（有效填写）</div>
+        <div id="officePie" class="chart"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">各大区办公司意愿堆叠图</div>
+        <div id="officeRegionBar" class="chart"></div>
+      </div>
+    </div>
+
+    <div class="risk-bar">
+      <div class="risk-title">⚠ 风险预警</div>
+      <span id="riskOffice"></span>
+    </div>
+  </div>
+
+  <!-- ===========================
+       备案 × 办公司 交叉分析
+       =========================== -->
+  <div class="section">
+    <div class="section-title">🔗 医药代表备案 × 办公司意愿 交叉分析</div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title" id="crossBeianTitle">医药代表已备案客户的办公司意愿拆解</div>
+        <div id="crossBeianOfficePie" class="chart"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">各医药代表备案分类的可转化 vs 不可转化</div>
+        <div id="crossBar" class="chart"></div>
+      </div>
+    </div>
+    <div class="insight-box">
+      <div class="ins-title">📌 交叉分析洞察</div>
+      <span id="insightCross"></span>
+    </div>
+  </div>
+
+  <!-- ===========================
+       客户反馈 + 支付方式 + 配合度
+       =========================== -->
+  <div class="section">
+    <div class="section-title">📋 客户反馈分类 & 沟通配合情况</div>
+    <div class="grid-3">
+      <div class="card">
+        <div class="card-title">客户反馈分类（去重后）</div>
+        <div id="fkPie" class="chart"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">整体配合度分布（去重后）</div>
+        <div id="coopPie" class="chart"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">当前支付方式分布</div>
+        <div id="payBar" class="chart"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===========================
+       大区分布
+       =========================== -->
+  <div class="section">
+    <div class="section-title">🗺 大区客户分布（去重后）</div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">各大区去重客户数对比</div>
+        <div id="regionBar" class="chart"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">沟通状态大区分布</div>
+        <div id="commBar" class="chart"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===========================
+       责任人明细表（修正：移除"不愿意"和"已有渠道"）
+       =========================== -->
+  <div class="section">
+    <div class="section-title">👤 责任人明细统计（去重后）</div>
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>责任人</th>
+              <th>客户总数</th>
+              <th>已备案</th>
+              <th>未备案/无</th>
+              <th>备案率</th>
+              <th>两者均可</th>
+              <th>可办个体户</th>
+              <th>可办小微企业</th>
+              <th>两者均不可</th>
+              <th>可转化率</th>
+            </tr>
+          </thead>
+          <tbody id="personTbody"></tbody>
+        </table>
+      </div>
+      <div class="insight-box" style="margin-top:14px;">
+        <div class="ins-title">📌 责任人数据说明</div>
+        · 可转化率 = (两者均可 + 可办个体户 + 可办小微企业) / 客户总数 × 100%<br>
+        · 备案率 = 已备案人数 / 客户总数 × 100%（分母为该责任人去重后全部客户）<br>
+        · 点击数字可查看该分类下的客户详细清单（姓名/终端/产品/学历/专业/开办公司情况）<br>
+        · <span style="color:#c62828;">红色数字</span>：两者均不可＞30人；<span style="color:#e65100;">橙色数字</span>：可转化率10%-30%；<span style="color:#f9a825;">金色数字</span>：可转化率≥30%
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<div class="footer" id="footerText">数据版本：去重处理（客户姓名+地区唯一键，保留最新记录）| 原始→有效 | 数据更新日期加载中...</div>
+
+<!-- ===== 钻取模态框 ===== -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">客户明细</div>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-summary" id="modalSummary"></div>
+      <div class="table-wrap">
+        <table class="modal-table" id="modalTable">
+          <thead>
+            <tr>
+              <th>序号</th>
+              <th>客户姓名</th>
+              <th>地区</th>
+              <th>终端名称</th>
+              <th>产品</th>
+              <th>学历</th>
+              <th>专业</th>
+              <th>医药代表备案</th>
+              <th>办公司意愿</th>
+              <th>客户反馈</th>
+            </tr>
+          </thead>
+          <tbody id="modalTbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===================== 公共颜色（白底蓝橙主题）=====================
+const C = {
+  blue1: '#1565c0', blue2: '#1e88e5', blue3: '#42a5f5', blue4: '#90caf9',
+  orange1: '#e65100', orange2: '#f57c00', orange3: '#ff9800', orange4: '#ffb74d',
+  red: '#c62828', darkRed: '#b71c1c',
+  gray1: '#90a4ae', gray2: '#b0bec5', gray3: '#cfd8dc',
+};
+const axisCfg = {
+  axisLabel: { color: '#78909c', fontSize: 11 },
+  axisLine: { lineStyle: { color: '#cfd8dc' } },
+  splitLine: { lineStyle: { color: '#e8edf3', type: 'dashed' } }
+};
+const legendCfg = { textStyle: { color: '#37474f', fontSize: 10 }, type: 'scroll' };
+const tooltipCfg = { trigger: 'item', backgroundColor: '#fff', borderColor: '#cfd8dc', textStyle: { color: '#37474f', fontSize: 12 } };
+const tooltipAxis = { trigger: 'axis', axisPointer: { type: 'shadow' }, backgroundColor: '#fff', borderColor: '#cfd8dc', textStyle: { color: '#37474f', fontSize: 12 } };
+
+// ===================== 填充KPI数据 =====================
+(function() {
+  // 去重说明条
+  document.getElementById('rawCount').textContent = D.totalRaw.toLocaleString();
+  document.getElementById('dupCount').textContent = D.dedupRemoved.toLocaleString();
+  document.getElementById('validCount').textContent = D.total.toLocaleString();
+
+  // KPI卡片
+  document.getElementById('kpiTotal').textContent = D.total.toLocaleString();
+  document.getElementById('kpiRaw').textContent = D.totalRaw.toLocaleString();
+  document.getElementById('kpiValid').textContent = D.total.toLocaleString();
+
+  const comm = D.comm || {};
+  const commTotal = (comm['已通知']||0) + (comm['需经理沟通']||0) + (comm['未接通']||0) + (comm['未通知']||0);
+  document.getElementById('kpiComm').textContent = (comm['已通知']||0).toLocaleString();
+  document.getElementById('kpiCommPct').textContent = commTotal > 0 ? ((comm['已通知']||0)/commTotal*100).toFixed(1) + '% 已完成通知' : '-';
+  document.getElementById('kpiCommSub').textContent = '需经理介入' + (comm['需经理沟通']||0) + '人 | 未接通' + (comm['未接通']||0) + '人';
+
+  const beianTotal = (D.beian['符合/已备案']||0) + (D.beian['未备案/无']||0) + (D.beian['未填写']||0);
+  const beianFilled = (D.beian['符合/已备案']||0) + (D.beian['未备案/无']||0);
+  document.getElementById('kpiBeian').textContent = beianFilled.toLocaleString();
+  document.getElementById('kpiBeianPct').textContent = D.total > 0 ? (beianFilled/D.total*100).toFixed(1) + '% 已填写' : '-';
+  document.getElementById('kpiBeianSub').textContent = '符合/已备案 ' + (D.beian['符合/已备案']||0) + '人';
+
+  const officeFilled = (D.office['两者均不可']||0) + (D.office['两者均可']||0) + (D.office['可办个体户']||0) + (D.office['可办小微企业']||0);
+  document.getElementById('kpiOffice').textContent = officeFilled.toLocaleString();
+  document.getElementById('kpiOfficePct').textContent = D.total > 0 ? (officeFilled/D.total*100).toFixed(1) + '% 已填写' : '-';
+  document.getElementById('kpiOfficeSub').textContent = '两者均不可+' + ((D.office['两者均不可']||0)) + '人';
+
+  const riskTotal = ((D.fk && D.fk['无法继续合作'])||0) + ((D.fk && D.fk['情绪不满反馈激烈'])||0);
+  document.getElementById('kpiRisk').textContent = riskTotal.toLocaleString();
+  document.getElementById('kpiRiskPct').textContent = D.total > 0 ? (riskTotal/D.total*100).toFixed(1) + '%' : '-';
+  document.getElementById('kpiRiskSub').textContent = '无法合作' + ((D.fk && D.fk['无法继续合作'])||0) + '人 | 情绪激烈' + ((D.fk && D.fk['情绪不满反馈激烈'])||0) + '人';
+
+  // 指标卡
+  document.getElementById('statBeianYes').textContent = (D.beian['符合/已备案']||0).toLocaleString();
+  document.getElementById('statBeianYesPct').textContent = '占' + (beianFilled>0 ? ((D.beian['符合/已备案']||0)/beianFilled*100).toFixed(1) : '-') + '%';
+  document.getElementById('statBeianNo').textContent = (D.beian['未备案/无']||0).toLocaleString();
+  document.getElementById('statBeianNoPct').textContent = '占' + (beianFilled>0 ? ((D.beian['未备案/无']||0)/beianFilled*100).toFixed(1) : '-') + '%';
+  document.getElementById('statBeianFilled').textContent = beianFilled.toLocaleString();
+  document.getElementById('statBeianFilledPct').textContent = '占去重总数 ' + (D.total>0 ? (beianFilled/D.total*100).toFixed(1) : '-') + '%';
+  document.getElementById('statBeianUnfilled').textContent = (D.beian['未填写']||0).toLocaleString();
+  document.getElementById('statBeianUnfilledPct').textContent = '占去重总数 ' + (D.total>0 ? ((D.beian['未填写']||0)/D.total*100).toFixed(1) : '-') + '%';
+
+  document.getElementById('statBoth').textContent = (D.office['两者均可']||0).toLocaleString();
+  document.getElementById('statGeTi').textContent = (D.office['可办个体户']||0).toLocaleString();
+  document.getElementById('statXiaoWei').textContent = (D.office['可办小微企业']||0).toLocaleString();
+  document.getElementById('statNone').textContent = (D.office['两者均不可']||0).toLocaleString();
+
+  // 洞察文字
+  const beianYes = D.beian['符合/已备案']||0;
+  const beianNo = D.beian['未备案/无']||0;
+  document.getElementById('insightBeian').innerHTML =
+    `· 去重后有效客户 <span class="em">${D.total}人</span>，其中 <span class="ok">${beianFilled}人（${(beianFilled/D.total*100).toFixed(1)}%）</span> 已填写医药代表备案，<span class="warn">${D.beian['未填写']||0}人（${(D.beian['未填写']/D.total*100).toFixed(1)}%）</span> 尚未填写<br>` +
+    `· 已填写的${beianFilled}人中，<span class="ok">${beianYes}人（${beianFilled>0?(beianYes/beianFilled*100).toFixed(1):0}%）符合/已备案</span>，<span class="warn">${beianNo}人（${beianFilled>0?(beianNo/beianFilled*100).toFixed(1):0}%）未备案/无</span><br>` +
+    `· <span class="warn">未备案/无${beianNo}人</span>，主要集中在华南、华西，需重点跟进`;
+
+  const noneCount = D.office['两者均不可']||0;
+  document.getElementById('riskOffice').innerHTML =
+    `<strong>两者均不可 ${noneCount}人</strong>，占有效填写的 ${(noneCount/officeFilled*100).toFixed(1)}%，为主要阻力群体<br>` +
+    `· 点击责任人表格中的数字，可查看该分类下的客户详细清单`;
+
+  // 交叉分析标题
+  document.getElementById('crossBeianTitle').textContent = `医药代表已备案${beianYes}人 × 办公司意愿`;
+
+  const convertCross = (D.crossBeian['两者均可']||0) + (D.crossBeian['可办个体户']||0) + (D.crossBeian['可办小微企业']||0);
+  document.getElementById('insightCross').innerHTML =
+    `· 已备案的${beianYes}人中，<span class="ok">可转化（个体户+小微+均可）= ${convertCross}人（${beianYes>0?(convertCross/beianYes*100).toFixed(1):0}%）</span><br>` +
+    `· 同时已备案且"两者均不可"有${D.crossBeian['两者均不可']||0}人，是最需深入沟通的优质客户群`;
+
+  // 底部日期
+  const now = new Date();
+  const dateStr = `${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日`;
+  document.getElementById('headerDate').textContent = `统计日期：${dateStr} | 数据来源：精细化客户沟通办理公司的情况`;
+  document.getElementById('footerText').textContent = `数据版本：去重处理（客户姓名+地区唯一键，保留最新记录）| 原始${D.totalRaw}条 → 有效${D.total}人 | 数据更新日期：${dateStr}`;
+
+})();
+
+// ===================== 备案饼图 =====================
+(function() {
+  const c = echarts.init(document.getElementById('beianPie'));
+  c.setOption({
+    backgroundColor: '#ffffff',
+    tooltip: { ...tooltipCfg, formatter: '{b}: {c}人 ({d}%)' },
+    legend: { bottom: 0, ...legendCfg },
+    series: [{
+      type: 'pie', radius: ['38%','68%'], center: ['50%','46%'],
+      label: { color: '#37474f', fontSize: 11, formatter: '{b}\n{c}人' },
+      emphasis: { itemStyle: { shadowBlur: 10, shadowColor: 'rgba(230,81,0,0.3)' } },
+      data: [
+        { value: D.beian['符合/已备案'], name: '符合/已备案', itemStyle: { color: C.orange3 } },
+        { value: D.beian['未备案/无'],   name: '未备案/无',   itemStyle: { color: C.red } },
+        { value: D.beian['未填写'],      name: '未填写',      itemStyle: { color: C.gray2 } },
+      ]
+    }]
+  });
+})();
+
+// ===================== 备案大区堆叠 =====================
+(function() {
+  const c = echarts.init(document.getElementById('beianRegionBar'));
+  c.setOption({
+    backgroundColor: '#ffffff',
+    tooltip: tooltipAxis,
+    legend: { top: 0, ...legendCfg },
+    grid: { top: 30, bottom: 30, left: 50, right: 10, containLabel: true },
+    xAxis: { type: 'category', data: D.beianRegion.regions, ...axisCfg },
+    yAxis: { type: 'value', ...axisCfg },
+    series: [
+      { name: '符合/已备案', type: 'bar', stack: 'r', data: D.beianRegion['符合/已备案'],  itemStyle: { color: C.orange3 } },
+      { name: '未备案/无',   type: 'bar', stack: 'r', data: D.beianRegion['未备案/无'], itemStyle: { color: C.red } },
+      { name: '未填写',      type: 'bar', stack: 'r', data: D.beianRegion['未填写'], itemStyle: { color: C.gray2 } },
+    ]
+  });
+})();
+
+// ===================== 办公司饼图（修正：移除"不愿意"和"已有渠道"） =====================
+(function() {
+  const c = echarts.init(document.getElementById('officePie'));
+  const data = [
+    { value: D.office['两者均不可'],      name: '两者均不可',      itemStyle: { color: C.red } },
+    { value: D.office['可办个体户'],      name: '可办个体户',      itemStyle: { color: C.orange3 } },
+    { value: D.office['可办小微企业'],    name: '可办小微企业',    itemStyle: { color: C.orange4 } },
+    { value: D.office['两者均可'],        name: '两者均可',        itemStyle: { color: C.blue3 } },
+    { value: D.office['未填写'],          name: '未填写',          itemStyle: { color: C.gray2 } },
+  ];
+  c.setOption({
+    backgroundColor: '#ffffff',
+    tooltip: { ...tooltipCfg, formatter: '{b}: {c}人 ({d}%)' },
+    legend: { bottom: 0, ...legendCfg },
+    series: [{
+      type: 'pie', radius: ['35%','65%'], center: ['50%','44%'],
+      label: { color: '#37474f', fontSize: 10, formatter: '{b}: {c}' },
+      emphasis: { itemStyle: { shadowBlur: 10, shadowColor: 'rgba(230,81,0,0.3)' } },
+      data
+    }]
+  });
+})();
+
+// ===================== 办公司大区堆叠（修正：移除"不愿意"和"已有渠道"） =====================
+(function() {
+  const c = echarts.init(document.getElementById('officeRegionBar'));
+  const o = D.officeRegion;
+  c.setOption({
+    backgroundColor: '#ffffff',
+    tooltip: tooltipAxis,
+    legend: { top: 0, ...legendCfg },
+    grid: { top: 30, bottom: 30, left: 50, right: 10, containLabel: true },
+    xAxis: { type: 'category', data: o.regions, ...axisCfg },
+    yAxis: { type: 'value', ...axisCfg },
+    series: [
+      { name: '两者均不可',    type: 'bar', stack: 'r', data: o['两者均不可'],     itemStyle: { color: C.red } },
+      { name: '可办个体户',    type: 'bar', stack: 'r', data: o['可办个体户'],     itemStyle: { color: C.orange3 } },
+      { name: '可办小微企业',  type: 'bar', stack: 'r', data: o['可办小微企业'],   itemStyle: { color: C.orange4 } },
+      { name: '两者均可',      type: 'bar', stack: 'r', data: o['两者均可'],       itemStyle: { color: C.blue3 } },
+      { name: '未填写',        type: 'bar', stack: 'r', data: o['未填写'],         itemStyle: { color: C.gray2 } },
+    ]
+  });
+})();
+
+// ===================== 备案×办公司交叉（修正：移除"不愿意"和"已有渠道"） =====================
+(function() {
+  const c = echarts.init(document.getElementById('crossBeianOfficePie'));
+  const cb = D.crossBeian;
+  c.setOption({
+    backgroundColor: '#ffffff',
+    tooltip: { ...tooltipCfg, formatter: '{b}: {c}人 ({d}%)' },
+    legend: { bottom: 0, ...legendCfg },
+    title: { text: `医药代表已备案${(D.beian&&D.beian['符合/已备案'])||0}人`, left: 'center', top: 0, textStyle: { color: '#78909c', fontSize: 11 } },
+    series: [{
+      type: 'pie', radius: ['35%','65%'], center: ['50%','52%'],
+      label: { color: '#37474f', fontSize: 10, formatter: '{b}: {c}' },
+      emphasis: { itemStyle: { shadowBlur: 10, shadowColor: 'rgba(230,81,0,0.3)' } },
+      data: [
+        { value: cb['两者均不可']||0,    name: '两者均不可',      itemStyle: { color: C.red } },
+        { value: cb['可办个体户']||0,    name: '可办个体户',      itemStyle: { color: C.orange3 } },
+        { value: cb['可办小微企业']||0,    name: '可办小微企业',    itemStyle: { color: C.orange4 } },
+        { value: cb['两者均可']||0,        name: '两者均可',        itemStyle: { color: C.blue3 } },
+        { value: cb['未填写']||0,          name: '未填写',          itemStyle: { color: C.gray2 } },
+      ]
+    }]
+  });
+})();
+
+// ===================== 交叉可转化柱图 =====================
+(function() {
+  const c = echarts.init(document.getElementById('crossBar'));
+  const cb = D.crossBeian;
+  const convert = (cb['两者均可']||0) + (cb['可办个体户']||0) + (cb['可办小微企业']||0);
+  const unconvert = (cb['两者均不可']||0) + (cb['未填写']||0);
+  c.setOption({
+    backgroundColor: '#ffffff',
+    tooltip: tooltipAxis,
+    legend: { top: 0, ...legendCfg },
+    grid: { top: 36, bottom: 10, left: 10, right: 10, containLabel: true },
+    xAxis: { type: 'category', data: ['已备案'+((D.beian&&D.beian['符合/已备案'])||0)+'人'], ...axisCfg },
+    yAxis: { type: 'value', ...axisCfg },
+    series: [
+      { name: '可转化（个体户+小微+均可）', type: 'bar', data: [convert],     itemStyle: { color: C.orange3 } },
+      { name: '不可/未填写',                    type: 'bar', data: [unconvert],  itemStyle: { color: C.red } },
+    ]
+  });
+})();
+
+// ===================== 客户反馈饼图 =====================
+(function() {
+  const c = echarts.init(document.getElementById('fkPie'));
+  const fk = D.fk || {};
+  c.setOption({
+    backgroundColor: '#ffffff',
+    tooltip: { ...tooltipCfg, formatter: '{b}: {c}人 ({d}%)' },
+    legend: { bottom: 0, ...legendCfg },
+    series: [{
+      type: 'pie', radius: ['35%','65%'], center: ['50%','46%'],
+      label: { color: '#37474f', fontSize: 10, formatter: '{b}\n{c}' },
+      emphasis: { itemStyle: { shadowBlur: 10, shadowColor: 'rgba(230,81,0,0.3)' } },
+      data: [
+        { value: fk['平静或无奈接受']||0,  name: '平静/无奈接受',  itemStyle: { color: C.blue2 } },
+        { value: fk['表示理解跟随公司']||0, name: '理解跟随公司',   itemStyle: { color: C.blue3 } },
+        { value: fk['有疑问需解答']||0,    name: '有疑问需解答',   itemStyle: { color: C.orange3 } },
+        { value: fk['情绪不满反馈激烈']||0, name: '情绪不满激烈',   itemStyle: { color: C.red } },
+        { value: fk['无法继续合作']||0,    name: '无法继续合作',   itemStyle: { color: C.darkRed } },
+        { value: fk['未接通']||0,          name: '未接通',         itemStyle: { color: C.gray1 } },
+        { value: fk['未填写']||0,           name: '未填写',         itemStyle: { color: C.gray2 } },
+      ]
+    }]
+  });
+})();
+
+// ===================== 配合度环形图 =====================
+(function() {
+  const c = echarts.init(document.getElementById('coopPie'));
+  const coop = D.coop || {};
+  c.setOption({
+    backgroundColor: '#ffffff',
+    tooltip: { ...tooltipCfg, formatter: '{b}: {c}人 ({d}%)' },
+    legend: { bottom: 0, ...legendCfg },
+    series: [{
+      type: 'pie', radius: ['38%','68%'], center: ['50%','46%'],
+      label: { color: '#37474f', fontSize: 11, formatter: '{b}: {c}' },
+      emphasis: { itemStyle: { shadowBlur: 10, shadowColor: 'rgba(230,81,0,0.3)' } },
+      data: [
+        { value: coop['高']||0,     name: '高',      itemStyle: { color: C.orange3 } },
+        { value: coop['中']||0,     name: '中',      itemStyle: { color: C.blue3 } },
+        { value: coop['低']||0,     name: '低',      itemStyle: { color: C.red } },
+        { value: coop['其他']||0,   name: '其他',    itemStyle: { color: C.gray1 } },
+        { value: coop['未填写']||0, name: '未填写',  itemStyle: { color: C.gray2 } },
+      ]
+    }]
+  });
+})();
+
+// ===================== 支付方式横向柱图 =====================
+(function() {
+  const c = echarts.init(document.getElementById('payBar'));
+  const pay = D.pay || {};
+  const keys = Object.keys(pay);
+  const vals = Object.values(pay);
+  const payColors = [C.orange3, C.blue3, C.orange4, C.gray1, C.gray2, '#b39ddb', '#a5d6a7', '#ef9a9a', '#90caf9'];
+  c.setOption({
+    backgroundColor: '#ffffff',
+    tooltip: tooltipAxis,
+    grid: { top: 10, bottom: 10, left: 10, right: 30, containLabel: true },
+    xAxis: { type: 'value', ...axisCfg },
+    yAxis: { type: 'category', data: keys, ...axisCfg },
+    series: [{
+      type: 'bar', data: vals,
+      itemStyle: { color: (p) => payColors[p.dataIndex] || C.blue2 },
+      label: { show: true, position: 'right', color: '#37474f', fontSize: 11 }
+    }]
+  });
+})();
+
+// ===================== 大区柱图 =====================
+(function() {
+  const c = echarts.init(document.getElementById('regionBar'));
+  const region = D.region || {};
+  const keys = Object.keys(region);
+  const vals = Object.values(region);
+  const regionColors = [C.orange3, C.blue3, C.orange4, C.blue2];
+  c.setOption({
+    backgroundColor: '#ffffff',
+    tooltip: tooltipAxis,
+    grid: { top: 10, bottom: 30, left: 10, right: 10, containLabel: true },
+    xAxis: { type: 'category', data: keys, ...axisCfg },
+    yAxis: { type: 'value', ...axisCfg },
+    series: [{
+      type: 'bar', data: vals,
+      itemStyle: { color: (p) => regionColors[p.dataIndex] || C.blue3 },
+      label: { show: true, position: 'top', color: '#37474f', fontSize: 12 }
+    }]
+  });
+})();
+
+// ===================== 沟通状态柱图 =====================
+(function() {
+  const c = echarts.init(document.getElementById('commBar'));
+  const comm = D.comm || {};
+  c.setOption({
+    backgroundColor: '#ffffff',
+    tooltip: tooltipAxis,
+    legend: { top: 0, ...legendCfg },
+    grid: { top: 36, bottom: 30, left: 50, right: 10, containLabel: true },
+    xAxis: { type: 'category', data: D.beianRegion.regions || ['华东','华北','华南','华西'], ...axisCfg },
+    yAxis: { type: 'value', ...axisCfg },
+    series: [
+      { name: '已通知',    type: 'bar', stack: 'c', data: (function(){ try{ return D.commBarData||[187,206,316,253]; }catch(e){ return [0,0,0,0]; } })(), itemStyle: { color: C.orange3 } },
+      { name: '需经理沟通', type: 'bar', stack: 'c', data: (function(){ try{ return D.commBarManager||[21,16,0,71]; }catch(e){ return [0,0,0,0]; } })(), itemStyle: { color: C.blue3 } },
+      { name: '未接通',    type: 'bar', stack: 'c', data: (function(){ try{ return D.commBarNo||[3,6,0,0]; }catch(e){ return [0,0,0,0]; } })(), itemStyle: { color: C.red } },
+    ]
+  });
+})();
+
+// ===================== 责任人表格（修正：移除"不愿意"和"已有渠道"列，添加钻取功能） =====================
+(function() {
+  const tbody = document.getElementById('personTbody');
+  D.persons.forEach(p => {
+    const brVal = parseFloat(p.br);
+    const crVal = parseFloat(p.cr);
+    const brCls = brVal >= 80 ? 'td-gold' : brVal >= 40 ? 'td-orange' : 'td-red';
+    const crCls = crVal >= 30 ? 'td-gold' : crVal >= 10 ? 'td-orange' : 'td-red';
+    tbody.innerHTML += `
+      <tr>
+        <td>${p.n}</td>
+        <td class="td-blue clickable" onclick="drillDown('${p.n}', 't')">${p.t}</td>
+        <td class="td-gold clickable" onclick="drillDown('${p.n}', 'b')">${p.b}</td>
+        <td class="${p.nb > 0 ? 'td-red clickable' : 'clickable'}" onclick="drillDown('${p.n}', 'nb')">${p.nb}</td>
+        <td class="${brCls}">${p.br}</td>
+        <td class="${p.均可 > 0 ? 'td-orange clickable' : ''}" onclick="drillDown('${p.n}', '均可')">${p.均可}</td>
+        <td class="${p.个体 > 0 ? 'td-orange clickable' : ''}" onclick="drillDown('${p.n}', '个体')">${p.个体}</td>
+        <td class="${p.小微 > 0 ? 'td-orange clickable' : ''}" onclick="drillDown('${p.n}', '小微')">${p.小微}</td>
+        <td class="${p.均不 > 0 ? 'td-red clickable' : ''}" onclick="drillDown('${p.n}', '均不')">${p.均不}</td>
+        <td class="${crCls}">${p.cr}</td>
+      </tr>`;
+  });
+})();
+
+// ===================== 钻取功能 =====================
+function drillDown(personName, field) {
+  const detail = DETAIL && DETAIL[personName];
+  if (!detail) { alert('暂无' + personName + '的详细数据'); return; }
+
+  // 根据field筛选
+  let filtered = detail;
+  let fieldName = '';
+  switch(field) {
+    case 't':  fieldName = '全部客户'; break;
+    case 'b':  filtered = detail.filter(d => d.beian === '符合备案要求'); fieldName = '已备案'; break;
+    case 'nb': filtered = detail.filter(d => d.beian === '不符合备案要求'); fieldName = '未备案/无'; break;
+    case '均可': filtered = detail.filter(d => d.office === '两者均可'); fieldName = '两者均可'; break;
+    case '个体': filtered = detail.filter(d => d.office === '可办个体户'); fieldName = '可办个体户'; break;
+    case '小微': filtered = detail.filter(d => d.office === '可办小微企业'); fieldName = '可办小微企业'; break;
+    case '均不': filtered = detail.filter(d => d.office === '两者均不可'); fieldName = '两者均不可'; break;
+    default: fieldName = '全部客户';
+  }
+
+  if (filtered.length === 0) { alert('该分类下暂无数据'); return; }
+
+  // 显示模态框
+  document.getElementById('modalTitle').textContent = personName + ' - ' + fieldName + '（' + filtered.length + '人）';
+  document.getElementById('modalSummary').innerHTML =
+    `<strong>${personName}</strong> | 分类：<strong>${fieldName}</strong> | 人数：<strong>${filtered.length}</strong> / ${detail.length}（该责任人全部去重客户）`;
+
+  const tbody = document.getElementById('modalTbody');
+  tbody.innerHTML = '';
+  filtered.forEach((d, i) => {
+    tbody.innerHTML += `
+      <tr>
+        <td>${i+1}</td>
+        <td>${d.name||'-'}</td>
+        <td>${d.region||'-'}</td>
+        <td style="text-align:left;">${d.terminal||'-'}</td>
+        <td style="text-align:left;">${d.product||'-'}</td>
+        <td>${d.education||'-'}</td>
+        <td>${d.major||'-'}</td>
+        <td>${d.beian||'-'}</td>
+        <td>${d.office||'-'}</td>
+        <td>${d.fk||'-'}</td>
+      </tr>`;
+  });
+
+  document.getElementById('modalOverlay').classList.add('active');
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('active');
+}
+
+// 点击模态框背景关闭
+document.getElementById('modalOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+// ESC关闭模态框
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeModal();
+});
+
+window.addEventListener('resize', () => {
+  ['beianPie','beianRegionBar','officePie','officeRegionBar',
+   'crossBeianOfficePie','crossBar','fkPie','coopPie','payBar',
+   'regionBar','commBar'].forEach(id => {
+    const c = echarts.getInstanceByDom(document.getElementById(id));
+    if (c) c.resize();
+  });
+});
+</script>
+</body>
+</html>
