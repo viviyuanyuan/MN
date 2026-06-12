@@ -515,7 +515,7 @@ function renderKPI(data) {
                 '<span class="kpi-unit" style="font-size:10px;">' + c.unit + '</span></div></div>' +
                 '<div style="width:1px;height:24px;background:var(--gray-200);"></div>' +
                 '<div style="display:flex;flex-direction:column;align-items:center;gap:1px;">' +
-                '<span style="font-size:10px;color:var(--gray-400);">5月</span>' +
+                '<span style="font-size:8px;color:var(--gray-400);white-space:nowrap;">5月vs1-4月月均</span>' +
                 '<div style="display:flex;align-items:baseline;gap:1px;">' +
                 '<span class="kpi-arrow ' + (c.mayValue >= 0 ? 'up' : 'down') + '" style="font-size:12px;">' + (c.mayValue >= 0 ? '▲' : '▼') + '</span>' +
                 '<span class="kpi-value" style="font-size:14px;">' + maySign + c.mayValue + '</span>' +
@@ -728,13 +728,14 @@ function updateGradeChart() {
             style: {
                 text: function() {
                     var total = gData.reduce(function(s, d) { return s + d.completion; }, 0);
-                    return '合计\n' + total.toFixed(2) + '万盒';
+                    var totalHosp = gData.reduce(function(s, d) { return s + d.hospital_count; }, 0);
+                    return '合计\n' + total.toFixed(2) + '万盒\n' + totalHosp + '家医院';
                 }(),
                 textAlign: 'center',
                 fill: '#1e293b',
-                fontSize: 14,
+                fontSize: 13,
                 fontWeight: 'bold',
-                lineHeight: 20
+                lineHeight: 18
             }
         }],
         series: [{
